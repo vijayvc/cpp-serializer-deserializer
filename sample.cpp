@@ -2,7 +2,8 @@
 #include<cstring>
 #include <iostream>
 #include <string>
-
+#include<vector>
+#include<list>
 using namespace std;
 class archive
 {
@@ -10,7 +11,7 @@ class archive
 	
 public:
 	template<class T>
-  archive& operator<<(T& t)
+        archive& operator<<(T& t)
 	{
 		//std::cout<< "helo";
 		//std::cout<< " "<<t;
@@ -19,6 +20,68 @@ public:
 		//std::cout<<s.str();
 		return *this;
 	}
+        
+        template <class T>
+        archive& operator<<(vector<T> &v )
+        { 
+            s<<v.size()<<" ";
+            for(auto i = v.begin();i != v.end();i++)
+            {
+               s<< *i<<" ";
+            }
+			return *this;
+       
+        }
+	template <class T>
+        archive& operator<<(list<T> &v )
+        { 
+            s<<v.size()<<" ";
+            for(auto i = v.begin();i != v.end();i++)
+            {
+               s<< *i<<" ";
+            }
+			return *this;
+       
+        }
+
+template <class T>
+        archive& operator>>(vector<T> &v )
+        { 
+            int size ;
+            s>> size;
+            
+            while(size)
+
+            {
+			    T val;
+			    s>> val;
+				v.push_back(val);
+				--size;
+            }
+			return *this;
+       
+        }
+
+template <class T>
+        archive& operator>>(list<T> &v )
+        { 
+            int size ;
+            s>> size;
+            
+            while(size)
+
+            {
+			    T val;
+			    s>> val;
+				v.push_back(val);
+				--size;
+            }
+			return *this;
+       
+        }
+
+
+
 
 	template<class T>
 	archive& operator>>(T &t)
@@ -36,7 +99,7 @@ public:
 	template<class T>
 	void load_object(T &t)
 	{
-		t.deserialize(s);
+		t.deserialize(*this);
 	}
 };
 class Student
@@ -47,14 +110,19 @@ public:
 	char  gender;
 	int age;
     double weight;
-	
+	vector<int> vi;
+	void add()
+	{
+		vi.push_back(2);
+		vi.push_back(5);
+	}
 	void serialize(archive  &ar)
 	{
-		ar<<gender<<age<<weight;	
+		ar<<gender<<age<<weight<<vi;	
 	}
-	void deserialize(istream &ar)
+	void deserialize(archive &ar)
 	{
-		ar>>gender>>age>>weight;
+		ar>>gender>>age>>weight>>vi;
 	}
 };
 
@@ -66,7 +134,7 @@ int main()
 	one.gender = 'F';
 	one.age = 16;
 	one.weight=17.5;
-
+	one.add();
 	//ofstream ofs("fifthgrade.ros");
    	//serializer srlz(ofs);
 	//ofs.write((char *)&one, sizeof(one));
@@ -75,7 +143,10 @@ int main()
 	Student two;
 	a.load_object(two);
 	cout<<two.gender<<" ";
-	cout<<two.age<<" "<<two.weight;
+	cout<<two.age<<" "<<two.weight<<" ";
+	cout<<one.vi[0];
+	cout<<one.vi[1];
+
 	return 0;
 }
 /*	
