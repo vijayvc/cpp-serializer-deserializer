@@ -1,23 +1,16 @@
-# --- macros
-#CC=gcc
-#CFLAGS=  -O3 -I /usr/local/lib/sprng/include -I /usr/local/lib/pgplot -g
-CCFLAGS= --std=c++0x 
-OBJECTS= archive.o test.o serializer
-#LIBS = -L/usr/local/lib/sprng/lib -llcg -L/usr/local/lib/pgplot -lcpgplot -lpgplot -lX11 -lftn -lm
+CPP = g++
+CPP_OPTIONS = -fno-exceptions -fno-rtti --std=c++0x 
 
-
-# --- targets
 all: serializer
 
-serializer:   archive.o test.o
-	g++ $(CCFLAGS) archive.o test.o -o serializer
-
-archive.o: archive.hpp archive.cpp
-	g++ $(CCFLAGS) -o archive.o -c archive.cpp
-test.o: archive.hpp archive.cpp test.cpp
-	g++ $(CCFLAGS) -o test.o -c test.cpp 
-
-# --- remove binary and executable files
 clean:
-	rm -f $(OBJECTS)
+	rm -f *.o serializer
 
+test.o: test.cpp archive.h
+	$(CPP) $(CPP_OPTIONS) -c test.cpp -o test.o
+
+#archive.o: archive.cpp archive.h
+#	$(CPP) $(CPP_OPTIONS) -c archive.cpp -o archive.o
+
+serializer: test.o 
+	$(CPP) $(CPP_OPTIONS) test.o -o serializer
