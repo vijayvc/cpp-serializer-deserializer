@@ -1,6 +1,44 @@
 #include "archive.h"
 //#include <iostream>
 using namespace std;
+class base
+{
+	friend class archive;
+	public:
+	int a;
+	
+	archive& serialize(archive  &ar)
+	{
+		ar<<a;
+		cout<<"Base: ";
+		//ar.printString();
+		return ar;
+	}
+	archive& deserialize(archive &ar)
+	{
+		return (ar>>a);
+	}
+};
+class derived
+{
+	friend class archive;
+	public:
+	base b;
+	char c;
+	archive& serialize(archive  &ar)
+	{
+		ar<<b<<c;//vi;	
+		cout<<"Derived: ";
+		//ar.printString();
+		return ar;
+	}
+	archive& deserialize(archive &ar)
+	{
+		ar>>b>>c;
+		return ar;
+	}
+
+};
 
 class Student
 {
@@ -40,7 +78,7 @@ public:
 int main()
 {
 
-	Student one;
+	/*Student one;
 	one.gender = 'F';
 	one.age = 16;
 	one.weight=17.5;
@@ -62,6 +100,15 @@ int main()
 	{
 		cout << (*iter).first << " " << (*iter).second << endl;
 	}
+*/
+archive a;
+derived d;
+d.b.a=10;
+d.c='a';
+a.save_object(d);
+derived d1;
+a.load_object(d1);
+cout<<d1.b.a<<" "<<d1.c;
 
-	return 0;
+return 0;
 }
