@@ -19,7 +19,23 @@ class base
 		return (ar>>a);
 	}
 };
-class derived
+class derived:public base
+
+{
+	friend class archive;
+	public:
+	int c;
+	archive& serialize(archive &ar)
+	{
+		ar<<(ar.base_object<base>(*this))<<c;
+	}
+
+	archive& deserialize(archive &ar)
+	{
+		ar>>(ar.base_object<base>(*this))>>c;
+	}
+};
+class containment_base
 {
 	friend class archive;
 	public:
@@ -28,7 +44,7 @@ class derived
 	archive& serialize(archive  &ar)
 	{
 		ar<<b<<c;//vi;	
-		cout<<"Derived: ";
+		cout<<"containment_base: ";
 		//ar.printString();
 		return ar;
 	}
@@ -101,14 +117,25 @@ int main()
 		cout << (*iter).first << " " << (*iter).second << endl;
 	}
 */
+
 archive a;
+/* test for inheritence */
 derived d;
-d.b.a=10;
-d.c='a';
+d.a = 1;
+d.c=2;
 a.save_object(d);
 derived d1;
 a.load_object(d1);
+cout<<d1.a<<" "<<d1.c;
+#if 0
+test for containment
+containment_base d;
+d.b.a=10;
+d.c='a';
+a.save_object(d);
+containment_base d1;
+a.load_object(d1);
 cout<<d1.b.a<<" "<<d1.c;
-
+#endif
 return 0;
 }
