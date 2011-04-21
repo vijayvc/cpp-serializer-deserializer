@@ -156,6 +156,8 @@ public:
 	template <class T>
         archive& operator>>(vector<T> &v );
 
+template <class baseType>
+    baseType& base_object(baseType& b);
 	// List Serialization/Deserialize
 	template <class T>
         archive& operator<<(list<T> &v );
@@ -254,6 +256,14 @@ template <class NameType, class ValueType>
 		//s<< *i<<" ";
 	}
 	return *this;
+}
+
+template <class baseType>
+   baseType& archive::base_object(baseType& b)
+{
+
+	//(*this)<<b;
+	return b;
 }
 
 /*
