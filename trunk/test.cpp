@@ -1,6 +1,27 @@
 #include "archive.h"
 //#include <iostream>
 using namespace std;
+class node
+{
+	friend class archive;
+	archive& serialize(archive &ar)
+	{
+		ar<<value<<next;
+	}
+	archive& deserialize(archive &ar)
+	{
+		ar>>value>>next;
+	}
+	static node* allocate_memory()
+	{
+		node *temp=new node();
+		return temp;
+	}
+	public:
+	int value;
+	node *next;
+};
+
 class base
 {
 	friend class archive;
@@ -128,7 +149,7 @@ a.save_object(d);
 derived d1;
 a.load_object(d1);
 cout<<d1.a<<" "<<d1.c;
-*/
+
 cout<<"Pointers"<<endl;
 int arr[3]={1,2,3};
 a.save_array(arr,3);
@@ -140,6 +161,21 @@ cout<<"Size is"<<sz<<endl;
 a.load_array(arr1);
 for(int i=0;i<sz;++i)
 	cout<<arr1[i]<<endl;
+*/
+
+node *root=new node();
+root->value=10;
+root->next=new node();
+root->next->value=20;
+root->next->next=root;
+
+a.save_object(root);
+a.print();
+node* root1;
+a.load_object(root1);
+cout<<root1->value;
+cout<<root1->next->value;
+cout<<root1->next->next->value;
 
 #if 0
 test for containment
