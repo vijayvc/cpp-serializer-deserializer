@@ -120,6 +120,7 @@ int main()
 
 archive a;
 /* test for inheritence */
+/*
 derived d;
 d.a = 1;
 d.c=2;
@@ -127,6 +128,19 @@ a.save_object(d);
 derived d1;
 a.load_object(d1);
 cout<<d1.a<<" "<<d1.c;
+*/
+cout<<"Pointers"<<endl;
+int arr[3]={1,2,3};
+a.save_array(arr,3);
+a.print();
+int sz=a.get_array_size();
+a.print();
+int *arr1= new int(sz);
+cout<<"Size is"<<sz<<endl;
+a.load_array(arr1);
+for(int i=0;i<sz;++i)
+	cout<<arr1[i]<<endl;
+
 #if 0
 test for containment
 containment_base d;
