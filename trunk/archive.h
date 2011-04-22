@@ -7,12 +7,70 @@
 #include <map>
 
 using namespace std;
+
 class archive
 {
 	stringstream s;
 	
 public:
+    void print()
+	{
+		cout<<"The stream is "<<s.str()<<endl;
+	}
 	
+	template<class T>
+    archive& save_array(T* ptr, int n)
+	{
+		int i;
+		s<<n<<" ";
+		for(i=0;i<n;i++,++ptr)
+			(*this)<<*ptr;
+		return *this;
+
+	}
+	template<class T>
+    archive& load_array(T* ptr)
+	{
+		int len;
+		s>>len;
+		for(int i=0;i<len;++i,++ptr)
+			(*this)>>*ptr;
+		return *this;
+	}
+	int get_array_size()
+	{
+		int pos=s.tellg();
+		int len;
+		s>>len;
+		s.seekg(pos, ios::beg);
+		return len;
+	}
+	archive& operator<<(int* t)=delete;
+	
+	archive& operator>>(int* t)=delete;
+	
+	archive& operator<<(char* t)=delete;
+	
+	archive& operator>>(char* t)=delete;
+	
+	archive& operator<<(float* t)=delete;
+	
+	archive& operator>>(float* t)=delete;
+
+	archive& operator<<(double* t)=delete;
+	
+	archive& operator>>(double* t)=delete;
+	
+	archive& operator<<(short* t)=delete;
+	
+	archive& operator>>(short* t)=delete;
+
+	archive& operator<<(long double* t)=delete;
+	
+	archive& operator>>(long double* t)=delete;
+
+		
+
 	archive& operator<<(int& t)
 	{
 		s<<t<<" ";
@@ -37,7 +95,8 @@ public:
 		s>>t;
 		return *this;
 	}
-    archive& operator<<(double &t)
+    
+	archive& operator<<(double &t)
 	{
 		s<<t<<" ";
 		return *this;
@@ -74,7 +133,8 @@ public:
 		s>>t;
 		return *this;
 	}
-        archive& operator<<(short & t)
+    
+	archive& operator<<(short & t)
 	{
 		s<<t<<" ";
 		return *this;
