@@ -1,9 +1,9 @@
 #include <sstream>
-#include<cstring>
+#include <cstring>
 #include <iostream>
 #include <string>
-#include<vector>
-#include<list>
+#include <vector>
+#include <list>
 #include <map>
 
 using namespace std;
@@ -88,9 +88,6 @@ public:
 			unsigned n=ser_map.size()+1;
 			ser_map[t]=n;
 			s<<ser_map[t]<<" ";
-			//cout << "Ser_map: ";
-			//print();
-			//cout<<" ";
 			(*t).serialize(*this);
 		}
 		return *this;
@@ -130,6 +127,7 @@ public:
 		s>>t;
 		return *this;
 	}
+
 	archive& operator<<(float& t)
 	{
 		s<<t<<" ";
@@ -153,6 +151,7 @@ public:
 		s>>t;
 		return *this;
 	}
+
 	archive& operator<<(char& t)
 	{
 		s<<t<<" ";
@@ -225,15 +224,15 @@ public:
 	template <class T>
 	archive& operator<< (T&t)
 	{
-		  t.serialize(*this);
-		  return *this;
+		t.serialize(*this);
+		return *this;
 	}
 
 	template <class T>
 	archive& operator>> (T&t)
 	{
-		  t.deserialize(*this);
-		  return *this;
+		t.deserialize(*this);
+		return *this;
 	}
 	
 	
@@ -295,13 +294,15 @@ public:
 	template<class T>
 	void save_object(T &t)
 	{
-		t.serialize(*this);
+		//t.serialize(*this);
+		(*this)<<t;
 	}
 
 	template<class T>
 	void load_object(T &t)
 	{
-		t.deserialize(*this);
+		//t.deserialize(*this);
+		(*this)>>t;
 	}
 	
 	template<class T>
