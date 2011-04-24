@@ -1,249 +1,111 @@
 #include "archive.h"
-//#include <iostream>
+#include "test.h"
 #include <string>
 using namespace std;
-class node
-{
-	friend class archive;
-	archive& serialize(archive &ar)
-	{
-		ar<<value<<next;
-	}
-	archive& deserialize(archive &ar)
-	{
-		ar>>value>>next;
-	}
-	static node* allocate_memory()
-	{
-		node *temp=new node();
-		return temp;
-	}
-	public:
-	int value;
-	node *next;
-};
 
-class base
+void testMap()
 {
-	friend class archive;
-	public:
-	int a;
+	Results obj;
+	obj.inflate();
+	cout << "Original Object: \n";
+	obj.print();
+
+	archive ar;
+	ar.save_object(obj);
 	
-	archive& serialize(archive  &ar)
-	{
-		ar<<a;
-		cout<<"Base: ";
-		//ar.printString();
-		return ar;
-	}
-	archive& deserialize(archive &ar)
-	{
-		return (ar>>a);
-	}
-};
-class derived:public base
+	Results obj2; 
+	ar.load_object(obj2);
 
+	cout << "\nRestored Object: \n";
+	obj.print();
+}
+
+// this will test custom object pointer save/load
+void testList()
 {
-	friend class archive;
-	public:
-	int c;
-	archive& serialize(archive &ar)
-	{
-		ar<<(ar.base_object<base>(*this))<<c;
-	}
+	archive a;
+	node *root=new node(10);
+	root->next=new node(45);
+	root->next->next=new node(98763);
+	root->next->next->next=0;
 
-	archive& deserialize(archive &ar)
-	{
-		ar>>(ar.base_object<base>(*this))>>c;
-	}
-};
-class containment_base
+	cout << "\nOriginal List: \n";
+	root->printList();
+
+	a.save_object(root);
+	//a.print();
+
+	node* root1;
+	a.load_object(root1);
+
+	cout << "\nRestored List: \n";
+	root1->printList();
+}
+
+// to test array of basic types/objects
+void testArrays()
 {
-	friend class archive;
-	public:
-	base b;
-	char c;
-	archive& serialize(archive  &ar)
-	{
-		ar<<b<<c;//vi;	
-		cout<<"containment_base: ";
-		//ar.printString();
-		return ar;
-	}
-	archive& deserialize(archive &ar)
-	{
-		ar>>b>>c;
-		return ar;
-	}
+	archive a;
+	int arr[3]={5,1,3};
 
-};
+	cout << "Original: ";
+	for(int i=0;i<3;++i)
+		cout << arr[i] << ' ';
+	cout << endl;
 
-class Student
+	a.save_array(arr,3);
+	//a.print();
+
+	int sz=a.get_array_size();
+	int *arr1= new int[sz];
+	a.load_array(arr1);
+	cout << "Restored: ";
+	for(int i=0;i<sz;++i)
+		cout << arr1[i] << ' ';
+	cout << endl;
+}
+
+//test for containment
+void testContainment()
 {
-	friend class archive;
-public:
-	
-	char  gender;
-	int age;
-	double weight;
-	//vector<int> vi;
-	map<string, int> mp; // does not work for char*
-	//multimap<string, int> mm;
-	void add()
-	{
-		/*
-		vi.push_back(2);
-		vi.push_back(5);
-		*/
+	archive a;
+	containment obj;
+	obj.inflate();
 
-		mp["f"] = 31;
-		mp["i"] = 28;
-		mp["r"] = 31;
-		mp["s"] = 30;
-		mp["t"] = 31;
-		
-		/*
-		mp[string("first name")] = 31;
-		mp[string("second sname")] = 28;
-		mp[string("third tname")] = 31;
-		mp[string("fourth 4name")] = 30;
-		mp[string("fifth f name")] = 31;
-		*/
+	cout << "Original Object: ";
+	obj.print();
+	a.save_object(obj);
 
-		/*
-		mm.insert(pair<string, int>("a", 1));
-		mm.insert(pair<string, int>("c", 2));
-		mm.insert(pair<string, int>("b", 3));
-		mm.insert(pair<string, int>("b", 4));
-		mm.insert(pair<string, int>("a", 5));
-		mm.insert(pair<string, int>("b", 6));
-		*/
-	}
-	void serialize(archive  &ar)
-	{
-		//ar<<gender<<age<<weight;
-		//ar<<vi;
-		string s("this is my string");
-		ar<<s;
-		ar<<mp;	
-		//cout << ar.s.str();
-		//ar<<mm;	
-	}
-	void deserialize(archive &ar)
-	{
-		//ar>>gender>>age>>weight;
-		//ar>>vi;
-		string s;
-		ar>>s;
-		//cout << s << endl;
-		ar>>mp;
-		//ar>>mm;
-	}
-};
+	containment res_obj;
+	a.load_object(res_obj);
+	cout << "Restored Object: ";
+	res_obj.print();
+}
+
+// test for inheritence
+void testInheritence()
+{
+	archive ar;
+	derived d;
+	d.inflate();
+
+	cout << "Original Object: ";
+	d.print();
+	ar.save_object(d);
+
+	derived d1;
+	ar.load_object(d1);
+	cout << "Restored Object: ";
+	d1.print();
+}
 
 int main()
 {
-	Student one;
-	one.gender = 'F';
-	one.age = 16;
-	one.weight=17.5;
-	one.add();
-	//ofstream ofs("fifthgrade.ros");
-	//serializer srlz(ofs);
-	//ofs.write((char *)&one, sizeof(one));
-	/*
-	cout << "\nSize: "<< one.mp.size() << endl;
-	for (auto iter = one.mp.begin(); iter != one.mp.end(); iter++)
-	{
-		cout << (*iter).first << " " << (*iter).second << endl;
-	}
-	*/
+	testMap();
+	//testList();
+	//testContainment();
+	//testInheritence();
+	//testArrays();
 
-	archive a;
-	a.save_object(one);
-	Student two;
-	a.load_object(two);
-//	cout<<two.gender<<" ";
-//	cout<<two.age<<" "<<two.weight<<" ";
-	//cout<<one.vi[0];
-	//cout<<one.vi[1];
-	
-	cout << "\nSize: "<< two.mp.size() << endl;
-	for (auto iter = two.mp.begin(); iter != two.mp.end(); iter++)
-	{
-		cout << (*iter).first << " " << (*iter).second << endl;
-	}
-	
-	/*
-	// Multimap
-	cout << "Size: "<< two.mm.size() << endl;
-	for (auto iter = two.mm.begin(); iter != two.mm.end(); iter++)
-	{
-		cout << (*iter).first << " " << (*iter).second << endl;
-	}
-	*/
-
-	//archive a;
-	/* test for inheritence */
-	/*
-	derived d;
-	d.a = 1;
-	d.c=2;
-	a.save_object(d);
-	derived d1;
-	a.load_object(d1);
-	cout<<d1.a<<" "<<d1.c;
-
-	cout<<"Pointers"<<endl;
-	int arr[3]={1,2,3};
-	a.save_array(arr,3);
-	a.print();
-	int sz=a.get_array_size();
-	a.print();
-	int *arr1= new int(sz);
-	cout<<"Size is"<<sz<<endl;
-	a.load_array(arr1);
-	for(int i=0;i<sz;++i)
-		cout<<arr1[i]<<endl;
-	*/
-
-#if 0
-	archive a;
-	node *root=new node();
-	root->value=10;
-	root->next=new node();
-	root->next->value=20;
-	root->next->next=root;
-
-	a.save_object(root);
-	a.print();
-	node* root1;
-	a.load_object(root1);
-	cout<<root1->value;
-	cout<<root1->next->value;
-	cout<<root1->next->next->value;
-#endif
-
-#if 0
-	archive ar;
-	/* test for inheritence */
-	derived d;
-	d.a = 1;
-	d.c=2;
-	ar.save_object(d);
-	derived d1;
-	ar.load_object(d1);
-	cout<<d1.a<<" "<<d1.c;
-#endif
-#if 0
-	test for containment
-	containment_base d;
-	d.b.a=10;
-	d.c='a';
-	a.save_object(d);
-	containment_base d1;
-	a.load_object(d1);
-	cout<<d1.b.a<<" "<<d1.c;
-#endif
 	return 0;
 }
