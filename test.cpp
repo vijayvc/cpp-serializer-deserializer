@@ -1,6 +1,7 @@
 #include "archive.h"
 #include "test.h"
 #include <string>
+#include <stack>
 using namespace std;
 
 void test_deque()
@@ -152,7 +153,91 @@ int main()
 	//testContainment();
 	//testInheritence();
 	//testArrays();
-    test_queue();
-	test_deque();
+	//test_queue();
+	//test_deque();
+	//test_forward_list();
+	//test_loop();
+	//test_stack();
 	return 0;
+}
+
+/* test for forward_list */
+void test_forward_list()
+{
+	archive a;
+
+	cout <<"Testing for Forward_list\n";
+	cout << "Original FORWARD_LIST\n";
+
+	forward_list<int> vi;
+	vi.push_front(2);
+	vi.push_front(5);
+	a<< vi;
+	for(auto i = vi.begin();i!= vi.end();i++)
+	{
+		cout<<*i<<endl;
+	}
+	forward_list<int> rl;
+	cout<<"Restored list";
+	a>>rl;
+	for(auto i = rl.begin();i!= rl.end();i++)
+	{
+		cout<<*i<<endl;
+	}
+
+}
+
+void test_loop()
+{
+	archive a;
+	node *root=new node();
+	root->value=10;
+	root->next=new node();
+	root->next->value=20;
+	root->next->next=root;
+
+	a.save_object(root);
+	a.print();
+	node* root1;
+	a.load_object(root1);
+	cout<<root1->value;
+	cout<<root1->next->value;
+	cout<<root1->next->next->value;
+}
+
+void test_stack()
+{
+	cout<< "Testing for Stack"<<endl;
+	archive a;
+	stack<int> s;
+	s.push(1);
+	s.push(2);
+	s.push(3);
+	cout<<"Original Stack :"<<endl;
+	stack<int>  s1 = s;
+	while(!s1.empty())
+	{
+		cout<<s1.top()<< endl;
+		s1.pop();
+	}
+	cout << " Serializing stack..."<<endl;
+	a<<s;
+	stack<int> s_restore;
+	a>>s_restore;
+	cout << " Deserializing stack..."<<endl;
+	
+	cout<<"Restored Stack :"<<endl;
+#if 0
+	while(!s_restore.empty())
+	{
+		cout<<s_restore.top()<< endl;
+		s_restore.pop();
+	}i
+#endif
+	s1 = s_restore;
+	while(!s1.empty())
+	{
+		cout<<s1.top()<< endl;
+		s1.pop();
+	}
 }

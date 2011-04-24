@@ -7,6 +7,8 @@
 #include <map>
 #include<deque>
 #include<queue>
+#include <forward_list>
+#include <stack>
 
 using namespace std;
 
@@ -123,7 +125,7 @@ public:
 		s<<t<<" ";
 		return *this;
 	}
- 
+
 	archive& operator>>(int &t)
 	{
 		s>>t;
@@ -135,7 +137,7 @@ public:
 		s<<t<<" ";
 		return *this;
 	}
- 
+
 	archive& operator>>(float &t)
 	{
 		s>>t;
@@ -147,7 +149,7 @@ public:
 		s<<t<<" ";
 		return *this;
 	}
- 
+
 	archive& operator>>(double &t)
 	{
 		s>>t;
@@ -159,7 +161,7 @@ public:
 		s<<t<<" ";
 		return *this;
 	}
- 
+
 	archive& operator>>(char &t)
 	{
 		s>>t;
@@ -171,7 +173,7 @@ public:
 		s<<t<<" ";
 		return *this;
 	}
- 
+
 	archive& operator>>(bool &t)
 	{
 		s>>t;
@@ -183,7 +185,7 @@ public:
 		s<<t<<" ";
 		return *this;
 	}
- 
+
 	archive& operator>>(short &t)
 	{
 		s>>t;
@@ -195,7 +197,7 @@ public:
 		s<<t<<" ";
 		return *this;
 	}
- 
+
 	archive& operator>>(long double &t)
 	{
 		s>>t;
@@ -284,6 +286,12 @@ public:
 	template <class T>
 	archive& operator>>(list<T> &v );
 
+	template <class T> 
+	archive& operator<<(forward_list<T> &v );
+	
+	template <class T> 
+	archive& operator>>(forward_list<T> &v );
+
 	// Map serialization/Deserialize
 	template <class NameType, class ValueType>
 	archive& operator<<(map<NameType, ValueType> &v );
@@ -303,6 +311,10 @@ public:
 	template <class NameType, class ValueType >
 	archive& operator>>(multimap<NameType, ValueType> &v );
 
+	template <class T> archive& operator<<(stack<T> v );
+
+	template <class T> archive& operator>>(stack<T> &v );
+	
 	// Named member functions
 	archive(): s(stringstream::in | stringstream::out){}
 
@@ -354,6 +366,38 @@ template <class T> archive& archive::operator>>(vector<T> &v )
 		T val;
 		(*this)>> val;
 		v.push_back(val);
+		--size;
+	}
+	return *this;
+}
+
+// Stack Serialization/Deserialize
+template <class T> archive& archive::operator<<(stack<T> v )
+{ 
+	vector<T> temp;
+	s<<v.size()<<" ";
+	while(!v.empty())
+	{
+		auto beg = temp.begin();
+		temp.insert(beg,v.top());
+		v.pop();
+	}
+	for(auto i = temp.begin();i!= temp.end();i++)
+		(*this)<<*i;
+	//cout<<s.str();
+	return *this;
+}
+
+template <class T> archive& archive::operator>>(stack<T> &v )
+{ 
+	int size ;
+	s>> size;
+
+	while(size)
+	{
+		T val;
+		(*this)>> val;
+		v.push(val);
 		--size;
 	}
 	return *this;
@@ -435,6 +479,36 @@ template <class T> archive& archive::operator>>(list<T> &v )
 		T val;
 		s>> val;
 		v.push_back(val);
+		--size;
+	}
+	return *this;
+}
+
+// Forward_List Serialization/Deserialize
+template <class T> archive& archive::operator<<(forward_list<T> &v )
+{ 
+	int size = 0;
+	vector<int> vec;
+	for(auto i = v.begin();i != v.end();i++)
+	{
+		size++;
+		vec.insert(vec.begin(),*i);
+	}
+	//s<<size<<" ";
+	(*this)<<vec;
+	return *this;
+}
+
+template <class T> archive& archive::operator>>(forward_list<T> &v )
+{ 
+	int size ;
+	s>> size;
+
+	while(size)
+	{
+		T val;
+		(*this)>> val;
+		v.push_front(val);
 		--size;
 	}
 	return *this;
