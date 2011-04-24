@@ -3,6 +3,52 @@
 #include <string>
 using namespace std;
 
+void test_deque()
+{
+	archive a;
+	cout<<"Testing deque"<<endl<<endl;
+	cout<<"Data before serialization"<<endl;
+	deque<int> d={1,2,3,4,5,6};
+	for(auto x=d.begin();x!=d.end();++x)
+		cout<<*x<<endl;
+	a<<d;
+	deque<int> d1;
+	a>>d1;
+	cout<<"Data after deserialization"<<endl;
+	for(auto x=d1.begin();x!=d1.end();++x)
+		cout<<*x<<endl;
+
+}
+
+void test_queue()
+{
+	archive a;
+	cout<<"Testing queue"<<endl<<endl;
+	cout<<"Data before serialization"<<endl;
+	queue<int> q;
+	int val=1;
+	while(val!=7)
+		q.push(val++);
+	int c=6;
+	queue<int> qp=q;
+	while(c)
+	{
+		cout<<qp.front()<<endl;
+		qp.pop();
+		--c;
+	}
+	a<<q;
+	queue<int> q1;
+	a>>q1;
+	cout<<"Data after deserialization"<<endl;
+	c=6;
+	while(c--)
+	{
+		cout<<q.front()<<endl;
+		q.pop();
+	}
+}
+
 void testMap()
 {
 	Results obj;
@@ -101,11 +147,12 @@ void testInheritence()
 
 int main()
 {
-	testMap();
+	//testMap();
 	//testList();
 	//testContainment();
 	//testInheritence();
 	//testArrays();
-
+    test_queue();
+	test_deque();
 	return 0;
 }

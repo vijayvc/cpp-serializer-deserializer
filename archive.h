@@ -5,6 +5,8 @@
 #include <vector>
 #include <list>
 #include <map>
+#include<deque>
+#include<queue>
 
 using namespace std;
 
@@ -259,6 +261,19 @@ public:
 	template <class T>
 	archive& operator>>(vector<T> &v );
 	
+	template <class T>
+	archive& operator<<(deque<T> &v );
+	
+	template <class T>
+	archive& operator>>(deque<T> &v );
+	
+	template <class T>
+	archive& operator<<(queue<T> q);
+	
+	template <class T>
+	archive& operator>>(queue<T> &q);
+
+	
 	template <class baseType>
 	baseType& base_object(baseType& b);
 
@@ -324,7 +339,7 @@ template <class T> archive& archive::operator<<(vector<T> &v )
 	s<<v.size()<<" ";
 	for(auto i = v.begin();i != v.end();i++)
 	{
-		s<< *i<<" ";
+		(*this)<<*i;
 	}
 	return *this;
 }
@@ -337,9 +352,64 @@ template <class T> archive& archive::operator>>(vector<T> &v )
 	while(size)
 	{
 		T val;
-		s>> val;
+		(*this)>> val;
 		v.push_back(val);
 		--size;
+	}
+	return *this;
+}
+
+// Deque Serialization/Deserialize
+
+template <class T> archive& archive::operator<<(deque<T> &d )
+{ 
+	s<<d.size()<<" ";
+	for(auto i = d.begin();i != d.end();i++)
+	{
+		(*this)<<*i;
+	}
+	return *this;
+}
+
+template <class T> archive& archive::operator>>(deque<T> &d )
+{ 
+	int size ;
+	s>> size;
+
+	while(size)
+	{
+		T val;
+		(*this)>> val;
+		d.push_back(val);
+		--size;
+	}
+	return *this;
+}
+
+// Queue Serialization/Deserialize
+
+template <class T> archive& archive::operator<<(queue<T> q )
+{ 
+	s<<q.size()<<" ";
+	int size=q.size();
+	while(size--)
+	{
+		(*this)<<q.front();
+		q.pop();
+	}
+	return *this;
+}
+
+template <class T> archive& archive::operator>>(queue<T> &q)
+{ 
+	int size ;
+	s>> size;
+
+	while(size--)
+	{
+		T val;
+		(*this)>> val;
+		q.push(val);
 	}
 	return *this;
 }
