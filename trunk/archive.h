@@ -88,9 +88,9 @@ public:
 			unsigned n=ser_map.size()+1;
 			ser_map[t]=n;
 			s<<ser_map[t]<<" ";
-			cout << "Ser_map: ";
+			//cout << "Ser_map: ";
 			//print();
-			cout<<" ";
+			//cout<<" ";
 			(*t).serialize(*this);
 		}
 		return *this;
@@ -210,7 +210,7 @@ public:
 		s<<" ";
 		return *this;
 	}
- 
+
 	archive& operator>>(string &t)
 	{
 		int len;
@@ -269,11 +269,11 @@ public:
 	
 	template <class T>
 	archive& operator>>(list<T> &v );
-	
+
 	// Map serialization/Deserialize
 	template <class NameType, class ValueType>
 	archive& operator<<(map<NameType, ValueType> &v );
-	
+
 	/*
 	template <class NameType, class ValueType>
 	archive& operator<<(map<const char*, ValueType> &v );
@@ -281,6 +281,13 @@ public:
 
 	template <class NameType, class ValueType >
 	archive& operator>>(map<NameType, ValueType> &v );
+
+	// Multi Map serialization/Deserialize
+	template <class NameType, class ValueType>
+	archive& operator<<(multimap<NameType, ValueType> &v );
+
+	template <class NameType, class ValueType >
+	archive& operator>>(multimap<NameType, ValueType> &v );
 
 	// Named member functions
 	archive(): s(stringstream::in | stringstream::out){}
@@ -362,6 +369,15 @@ template <class T> archive& archive::operator>>(list<T> &v )
 	return *this;
 }
 
+template <class baseType>
+	baseType& archive::base_object(baseType& b)
+{
+
+	//(*this)<<b;
+	return b;
+}
+
+/*
 // Map serialization/Deserialize
 template <class NameType, class ValueType>
 	archive& archive::operator<<(map<NameType, ValueType> &v )
@@ -375,17 +391,28 @@ template <class NameType, class ValueType>
 	return *this;
 }
 
-template <class baseType>
-	baseType& archive::base_object(baseType& b)
-{
-
-	//(*this)<<b;
-	return b;
+template <class NameType, class ValueType>
+	archive& archive::operator>>(map<NameType, ValueType> &v )
+{ 
+	int size ;
+	s >> size;
+//	std::cout<<s.str().length();
+	while(size)
+	{
+		NameType name;
+		ValueType val;
+		s >> name;
+		s >> val;
+		v.insert(pair<NameType, ValueType>(name, val));
+		//v[name]=val;
+		--size;
+	}
+	return *this;
 }
 
-/*
+// Multi Map serialization/Deserialize
 template <class NameType, class ValueType>
-	archive& operator<<(map<const char*, ValueType> &v )
+	archive& archive::operator<<(multimap<NameType, ValueType> &v )
 { 
 	s<< v.size() <<" ";
 	for(auto i = v.begin();i != v.end();i++)
@@ -395,22 +422,111 @@ template <class NameType, class ValueType>
 	}
 	return *this;
 }
-*/
 
 template <class NameType, class ValueType>
-	archive& archive::operator>>(map<NameType, ValueType> &v )
+	archive& archive::operator>>(multimap<NameType, ValueType> &v )
 { 
 	int size ;
 	s >> size;
-
+	std::cout<<s.str().length();
 	while(size)
 	{
 		NameType name;
 		ValueType val;
 		s >> name;
 		s >> val;
-		v[name]=val;
+		v.insert(pair<NameType, ValueType>(name, val));
+		//v[name]=val;
 		--size;
 	}
 	return *this;
 }
+*/
+
+template <class T>
+	void writeMap(T &v, stringstream& s)
+{
+	s<< v.size() <<" ";
+	for(auto i = v.begin();i != v.end();i++)
+	{
+		s << (*i).first << " " << (*i).second << " ";
+	}
+}
+
+template <class NameType, class ValueType>
+	archive& archive::operator<<(map<NameType, ValueType> &v )
+{
+	writeMap(v, s);
+	return *this;
+}
+
+template <class NameType, class ValueType>
+	archive& archive::operator<<(multimap<NameType, ValueType> &v )
+{
+	writeMap(v, s);
+	return *this;
+}
+
+/*
+template <class NameType, class ValueType>
+	archive& archive::operator<<(unordered_map<NameType, ValueType> &v )
+{
+	writeMap(v, s);
+	return *this;
+}
+
+template <class NameType, class ValueType>
+	archive& archive::operator<<(unordered_multimap<NameType, ValueType> &v )
+{
+	writeMap(v, s);
+	return *this;
+}
+*/
+
+template <class NameType, class ValueType, class T>
+	void readMap(T &v, stringstream& s )
+{ 
+	int size ;
+	s >> size;
+	//std::cout<<s.str()<<endl;
+	while(size)
+	{
+		NameType name;
+		ValueType val;
+		s >> name;
+		s >> val;
+		v.insert(pair<NameType, ValueType>(name, val));
+		//v[name]=val;
+		--size;
+	}
+}
+
+template <class NameType, class ValueType>
+	archive& archive::operator>>(map<NameType, ValueType> &v )
+{ 
+	readMap<NameType, ValueType, map<NameType, ValueType> >(v, s);
+	return *this;
+} 
+
+template <class NameType, class ValueType>
+	archive& archive::operator>>(multimap<NameType, ValueType> &v )
+{ 
+	readMap<NameType, ValueType, multimap<NameType, ValueType> >(v, s);
+	return *this;
+}
+
+/*
+template <class NameType, class ValueType>
+	archive& archive::operator>>(unordered_map<NameType, ValueType> &v )
+{ 
+	readMap<NameType, ValueType, unordered_map<NameType, ValueType> >(v, s);
+	return *this;
+}
+
+template <class NameType, class ValueType>
+	archive& archive::operator>>(unordered_multimap<NameType, ValueType> &v )
+{ 
+	readMap<NameType, ValueType, unordered_multimap<NameType, ValueType> >(v, s);
+	return *this;
+}
+*/
