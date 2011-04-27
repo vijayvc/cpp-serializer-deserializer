@@ -1,12 +1,13 @@
-#include "archive.h"
+#include "Serializer.h"
 #include "test.h"
 #include <string>
 #include <stack>
+#include <fstream>
 using namespace std;
 
 void test_deque()
 {
-	archive a;
+	Serializer a;
 	cout<<"Testing deque"<<endl<<endl;
 	cout<<"Data before serialization"<<endl;
 	deque<int> d={1,2,3,4,5,6};
@@ -23,7 +24,7 @@ void test_deque()
 
 void test_queue()
 {
-	archive a;
+	Serializer a;
 	cout<<"Testing queue"<<endl<<endl;
 	cout<<"Data before serialization"<<endl;
 	queue<int> q;
@@ -50,6 +51,23 @@ void test_queue()
 	}
 }
 
+void writeToFile(const stringstream& s)
+{
+	ofstream myfile;
+	myfile.open ("example.txt");
+	myfile << s.str(); 
+	myfile.close();
+}
+
+stringstream* readFromFile()
+{
+	std::ifstream in("example.txt");
+	std::stringstream* buffer = new stringstream();
+	*buffer << in.rdbuf();
+	in.close();
+	return buffer;
+}
+
 void testMap()
 {
 	Results obj;
@@ -57,11 +75,14 @@ void testMap()
 	cout << "Original Object: \n";
 	obj.print();
 
-	archive ar;
+	Serializer ar;
 	ar.save_object(obj);
+	writeToFile(ar.get_stream());
 	
+	stringstream* contents = readFromFile();
+	Deserializer dz(*contents);
 	Results obj2; 
-	ar.load_object(obj2);
+	dz.load_object(obj2);
 
 	cout << "\nRestored Object: \n";
 	obj.print();
@@ -70,7 +91,7 @@ void testMap()
 // this will test custom object pointer save/load
 void testList()
 {
-	archive a;
+	Serializer a;
 	node *root=new node(10);
 	root->next=new node(45);
 	root->next->next=new node(98763);
@@ -80,10 +101,12 @@ void testList()
 	root->printList();
 
 	a.save_object(root);
-	//a.print();
-
+	writeToFile(a.get_stream());
+	
+	stringstream* contents = readFromFile();
+	Deserializer dz(*contents);
 	node* root1;
-	a.load_object(root1);
+	dz.load_object(root1);
 
 	cout << "\nRestored List: \n";
 	root1->printList();
@@ -92,7 +115,7 @@ void testList()
 // to test array of basic types/objects
 void testArrays()
 {
-	archive a;
+	Serializer a;
 	int arr[3]={5,1,3};
 
 	cout << "Original: ";
@@ -101,11 +124,13 @@ void testArrays()
 	cout << endl;
 
 	a.save_array(arr,3);
-	//a.print();
-
-	int sz=a.get_array_size();
+	writeToFile(a.get_stream());
+	
+	stringstream* contents = readFromFile();
+	Deserializer dz(*contents);
+	int sz=dz.get_array_size();
 	int *arr1= new int[sz];
-	a.load_array(arr1);
+	dz.load_array(arr1);
 	cout << "Restored: ";
 	for(int i=0;i<sz;++i)
 		cout << arr1[i] << ' ';
@@ -113,9 +138,10 @@ void testArrays()
 }
 
 //test for containment
+/*
 void testContainment()
 {
-	archive a;
+	Serializer a;
 	containment obj;
 	obj.inflate();
 
@@ -132,7 +158,7 @@ void testContainment()
 // test for inheritence
 void testInheritence()
 {
-	archive ar;
+	Serializer ar;
 	derived d;
 	d.inflate();
 
@@ -145,14 +171,14 @@ void testInheritence()
 	cout << "Restored Object: ";
 	d1.print();
 }
-
+*/
 int main()
 {
-	//testMap();
-	//testList();
+	testMap();
+	testList();
 	//testContainment();
 	//testInheritence();
-	//testArrays();
+	testArrays();
 	//test_queue();
 	//test_deque();
 	//test_forward_list();
@@ -164,7 +190,7 @@ int main()
 /* test for forward_list */
 void test_forward_list()
 {
-	archive a;
+	Serializer a;
 
 	cout <<"Testing for Forward_list\n";
 	cout << "Original FORWARD_LIST\n";
@@ -189,7 +215,7 @@ void test_forward_list()
 
 void test_loop()
 {
-	archive a;
+	Serializer a;
 	node *root=new node();
 	root->value=10;
 	root->next=new node();
@@ -208,7 +234,7 @@ void test_loop()
 void test_stack()
 {
 	cout<< "Testing for Stack"<<endl;
-	archive a;
+	Serializer a;
 	stack<int> s;
 	s.push(1);
 	s.push(2);
