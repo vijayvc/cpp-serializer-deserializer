@@ -1,11 +1,12 @@
+#include <typeinfo>
 class node
 {
-	friend class archive;
-	archive& serialize(archive &ar)
+	friend class Serializer;
+	Serializer& serialize(Serializer &ar)
 	{
 		ar<<value<<next;
 	}
-	archive& deserialize(archive &ar)
+	Serializer& deserialize(Serializer &ar)
 	{
 		ar>>value>>next;
 	}
@@ -37,16 +38,16 @@ public:
 
 class base
 {
-	friend class archive;
+	friend class Serializer;
 public:
 	int a;
 	
-	archive& serialize(archive  &ar)
+	Serializer& serialize(Serializer  &ar)
 	{
 		ar<<a;
 		return ar;
 	}
-	archive& deserialize(archive &ar)
+	Serializer& deserialize(Serializer &ar)
 	{
 		return (ar>>a);
 	}
@@ -54,14 +55,14 @@ public:
 
 class derived:public base
 {
-	friend class archive;
+	friend class Serializer;
 	char c;
-	archive& serialize(archive &ar)
+	Serializer& serialize(Serializer &ar)
 	{
 		ar<<(ar.base_object<base>(*this))<<c;
 	}
 
-	archive& deserialize(archive &ar)
+	Serializer& deserialize(Serializer &ar)
 	{
 		ar>>(ar.base_object<base>(*this))>>c;
 	}
@@ -80,16 +81,16 @@ public:
 
 class containment
 {
-	friend class archive;
+	friend class Serializer;
 private:
 	base b;
 	char c;
-	archive& serialize(archive  &ar)
+	Serializer& serialize(Serializer  &ar)
 	{
 		ar<<b<<c;
 		return ar;
 	}
-	archive& deserialize(archive &ar)
+	Serializer& deserialize(Serializer &ar)
 	{
 		ar>>b>>c;
 		return ar;
@@ -109,25 +110,29 @@ public:
 
 class Results 
 {
-	friend class archive;
+	friend class Serializer;
 public:
 	map<string, int> marks; // name->mark
 	multimap<string, int> mmarks; // name-> {set of marks}
 	void inflate()
 	{
+		/*
 		marks["vijay"] = 28;
 		marks["venky"] = 31;
 		marks["john"] = 31;
 		marks["abcd"] = 30;
 		marks["efgh"] = 31;
+		*/
+		//cout << "Types: \n";
+		//cout<< typeid((*(marks.begin())).first).name() << endl;
+		//cout<< typeid((*(marks.begin())).second).name() << endl;
 		
-		/*
 		marks[string("first name")] = 31;
 		marks[string("second sname")] = 28;
 		marks[string("third tname")] = 31;
 		marks[string("fourth 4name")] = 30;
 		marks[string("fifth f name")] = 31;
-		*/
+		
 
 		mmarks.insert(pair<string, int>("a", 1));
 		mmarks.insert(pair<string, int>("c", 2));
@@ -136,13 +141,18 @@ public:
 		mmarks.insert(pair<string, int>("a", 5));
 		mmarks.insert(pair<string, int>("b", 6));
 	}
-	void serialize(archive  &ar)
+	void serialize(Serializer  &ar)
 	{
+		//ar<<string("abcd");
 		ar<<marks;	
+		ar<<mmarks;	
 	}
-	void deserialize(archive &ar)
+	void deserialize(Serializer &ar)
 	{
+		ar>>marks;
 		ar>>mmarks;
+		//string s;
+		//ar>>s;
 	}
 	void print()
 	{
