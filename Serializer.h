@@ -12,11 +12,16 @@
 
 using namespace std;
 
-class archive
+class Serializer
 {
-	stringstream s;
+private:
 	map<void*,int> ser_map;
 	map<int,void*> deser_map; 
+protected:
+	stringstream s;
+	Serializer(const stringstream& input):s(input.str(), stringstream::in)
+	{
+	}
 public:
 	void print()
 	{
@@ -24,7 +29,7 @@ public:
 	}
 	
 	template<class T>
-	archive& save_array(T* ptr, int n)
+	Serializer& save_array(T* ptr, int n)
 	{
 		int i;
 		s<<n<<" ";
@@ -32,8 +37,9 @@ public:
 			(*this)<<*ptr;
 		return *this;
 	}
+
 	template<class T>
-	archive& load_array(T* ptr)
+	Serializer& load_array(T* ptr)
 	{
 		int len;
 		s>>len;
@@ -41,6 +47,7 @@ public:
 			(*this)>>*ptr;
 		return *this;
 	}
+
 	int get_array_size()
 	{
 		int pos=s.tellg();
@@ -51,32 +58,32 @@ public:
 	}
 
 	// Serialize/Deserialize pointers
-	archive& operator<<(int* t)=delete;
+	Serializer& operator<<(int* t)=delete;
 	
-	archive& operator>>(int* t)=delete;
+	Serializer& operator>>(int* t)=delete;
 	
-	archive& operator<<(char* t)=delete;
+	Serializer& operator<<(const char* t)=delete;
 	
-	archive& operator>>(char* t)=delete;
+	Serializer& operator>>(char* t)=delete;
 	
-	archive& operator<<(float* t)=delete;
+	Serializer& operator<<(float* t)=delete;
 	
-	archive& operator>>(float* t)=delete;
+	Serializer& operator>>(float* t)=delete;
 
-	archive& operator<<(double* t)=delete;
+	Serializer& operator<<(double* t)=delete;
 	
-	archive& operator>>(double* t)=delete;
+	Serializer& operator>>(double* t)=delete;
 	
-	archive& operator<<(short* t)=delete;
+	Serializer& operator<<(short* t)=delete;
 	
-	archive& operator>>(short* t)=delete;
+	Serializer& operator>>(short* t)=delete;
 
-	archive& operator<<(long double* t)=delete;
+	Serializer& operator<<(long double* t)=delete;
 	
-	archive& operator>>(long double* t)=delete;
+	Serializer& operator>>(long double* t)=delete;
 
 	template<class T>
-	archive& operator<<(T * &t)
+	Serializer& operator<<(T * &t)
 	{
 		if(t==NULL)
 		{
@@ -98,7 +105,7 @@ public:
 	}
 
 	template<class T>
-	archive& operator>>(T * &t)
+	Serializer& operator>>(T * &t)
 	{
 		int n;
 		s>>n;
@@ -120,91 +127,91 @@ public:
 		return (*this);
 	}
 	
-	archive& operator<<(int& t)
+	Serializer& operator<<(int& t)
 	{
 		s<<t<<" ";
 		return *this;
 	}
 
-	archive& operator>>(int &t)
+	Serializer& operator>>(int &t)
 	{
 		s>>t;
 		return *this;
 	}
 
-	archive& operator<<(float& t)
+	Serializer& operator<<(float& t)
 	{
 		s<<t<<" ";
 		return *this;
 	}
 
-	archive& operator>>(float &t)
+	Serializer& operator>>(float &t)
 	{
 		s>>t;
 		return *this;
 	}
 
-	archive& operator<<(double &t)
+	Serializer& operator<<(double &t)
 	{
 		s<<t<<" ";
 		return *this;
 	}
 
-	archive& operator>>(double &t)
+	Serializer& operator>>(double &t)
 	{
 		s>>t;
 		return *this;
 	}
 
-	archive& operator<<(char& t)
+	Serializer& operator<<(char& t)
 	{
 		s<<t<<" ";
 		return *this;
 	}
 
-	archive& operator>>(char &t)
-	{
-		s>>t;
-		return *this;
-	}
-	
-	archive& operator<<(bool &t)
-	{
-		s<<t<<" ";
-		return *this;
-	}
-
-	archive& operator>>(bool &t)
-	{
-		s>>t;
-		return *this;
-	}
-
-	archive& operator<<(short & t)
-	{
-		s<<t<<" ";
-		return *this;
-	}
-
-	archive& operator>>(short &t)
+	Serializer& operator>>(char &t)
 	{
 		s>>t;
 		return *this;
 	}
 	
-	archive& operator<<(long double &t)
+	Serializer& operator<<(bool &t)
 	{
 		s<<t<<" ";
 		return *this;
 	}
 
-	archive& operator>>(long double &t)
+	Serializer& operator>>(bool &t)
 	{
 		s>>t;
 		return *this;
 	}
 
-	archive& operator<<(string &t)
+	Serializer& operator<<(short & t)
+	{
+		s<<t<<" ";
+		return *this;
+	}
+
+	Serializer& operator>>(short &t)
+	{
+		s>>t;
+		return *this;
+	}
+	
+	Serializer& operator<<(long double &t)
+	{
+		s<<t<<" ";
+		return *this;
+	}
+
+	Serializer& operator>>(long double &t)
+	{
+		s>>t;
+		return *this;
+	}
+
+	Serializer& operator<<(const string &t)
 	{
 		int len=t.length();
 		s<<len<<" ";
@@ -214,7 +221,7 @@ public:
 		return *this;
 	}
 
-	archive& operator>>(string &t)
+	Serializer& operator>>(string &t)
 	{
 		int len;
 		s>>len;
@@ -224,16 +231,16 @@ public:
 		t=str;
 		return *this;
 	}  
-	
+
 	template <class T>
-	archive& operator<< (T&t)
+	Serializer& operator<< (T&t)
 	{
 		t.serialize(*this);
 		return *this;
 	}
 
 	template <class T>
-	archive& operator>> (T&t)
+	Serializer& operator>> (T&t)
 	{
 		t.deserialize(*this);
 		return *this;
@@ -243,14 +250,14 @@ public:
 	// General Serialization/Deserialization
 	/*
 	template<class T>
-	archive& operator<<(T& t)
+	Serializer& operator<<(T& t)
 	{
 		s<<t<<" ";
 		return *this;
 	}
 
 	template<class T>
-	archive& operator>>(T &t)
+	Serializer& operator>>(T &t)
 	{
 		s>>t;
 		return *this;
@@ -258,22 +265,22 @@ public:
 	*/
 	// Vector Serialization/Deserialize
 	template <class T>
-	archive& operator<<(vector<T> &v );
+	Serializer& operator<<(vector<T> &v );
 	
 	template <class T>
-	archive& operator>>(vector<T> &v );
+	Serializer& operator>>(vector<T> &v );
 	
 	template <class T>
-	archive& operator<<(deque<T> &v );
+	Serializer& operator<<(deque<T> &v );
 	
 	template <class T>
-	archive& operator>>(deque<T> &v );
+	Serializer& operator>>(deque<T> &v );
 	
 	template <class T>
-	archive& operator<<(queue<T> q);
+	Serializer& operator<<(queue<T> q);
 	
 	template <class T>
-	archive& operator>>(queue<T> &q);
+	Serializer& operator>>(queue<T> &q);
 
 	
 	template <class baseType>
@@ -281,42 +288,42 @@ public:
 
 	// List Serialization/Deserialize
 	template <class T>
-	archive& operator<<(list<T> &v );
+	Serializer& operator<<(list<T> &v );
 	
 	template <class T>
-	archive& operator>>(list<T> &v );
+	Serializer& operator>>(list<T> &v );
 
 	template <class T> 
-	archive& operator<<(forward_list<T> &v );
+	Serializer& operator<<(forward_list<T> &v );
 	
 	template <class T> 
-	archive& operator>>(forward_list<T> &v );
+	Serializer& operator>>(forward_list<T> &v );
 
 	// Map serialization/Deserialize
 	template <class NameType, class ValueType>
-	archive& operator<<(map<NameType, ValueType> &v );
+	Serializer& operator<<(map<NameType, ValueType> &v );
 
 	/*
 	template <class NameType, class ValueType>
-	archive& operator<<(map<const char*, ValueType> &v );
+	Serializer& operator<<(map<const char*, ValueType> &v );
 	*/
 
 	template <class NameType, class ValueType >
-	archive& operator>>(map<NameType, ValueType> &v );
+	Serializer& operator>>(map<NameType, ValueType> &v );
 
 	// Multi Map serialization/Deserialize
 	template <class NameType, class ValueType>
-	archive& operator<<(multimap<NameType, ValueType> &v );
+	Serializer& operator<<(multimap<NameType, ValueType> &v );
 
 	template <class NameType, class ValueType >
-	archive& operator>>(multimap<NameType, ValueType> &v );
+	Serializer& operator>>(multimap<NameType, ValueType> &v );
 
-	template <class T> archive& operator<<(stack<T> v );
+	template <class T> Serializer& operator<<(stack<T> v );
 
-	template <class T> archive& operator>>(stack<T> &v );
+	template <class T> Serializer& operator>>(stack<T> &v );
 	
 	// Named member functions
-	archive(): s(stringstream::in | stringstream::out){}
+	Serializer(): s(stringstream::out){}
 
 	template<class T>
 	void save_object(T &t)
@@ -325,13 +332,7 @@ public:
 		(*this)<<t;
 	}
 
-	template<class T>
-	void load_object(T &t)
-	{
-		//t.deserialize(*this);
-		(*this)>>t;
-	}
-	
+
 	template<class T>
 	void save_object(T *t)
 	{
@@ -343,10 +344,31 @@ public:
 	{
 		(*this)>>t;
 	}
+
+	const stringstream& get_stream()
+	{
+		return s;
+	}
+};
+
+class Deserializer:public Serializer
+{
+public:
+	Deserializer(const stringstream& input):Serializer(input)
+	{
+	}
+	template<class T>
+	void load_object(T &t)
+	{
+		//t.deserialize(*this);
+		(*this)>>t;
+	}
+	template<class T>
+	void save_object(T& t) = delete;
 };
 
 // Vector Serialization/Deserialize
-template <class T> archive& archive::operator<<(vector<T> &v )
+template <class T> Serializer& Serializer::operator<<(vector<T> &v )
 { 
 	s<<v.size()<<" ";
 	for(auto i = v.begin();i != v.end();i++)
@@ -356,7 +378,7 @@ template <class T> archive& archive::operator<<(vector<T> &v )
 	return *this;
 }
 
-template <class T> archive& archive::operator>>(vector<T> &v )
+template <class T> Serializer& Serializer::operator>>(vector<T> &v )
 { 
 	int size ;
 	s>> size;
@@ -372,7 +394,7 @@ template <class T> archive& archive::operator>>(vector<T> &v )
 }
 
 // Stack Serialization/Deserialize
-template <class T> archive& archive::operator<<(stack<T> v )
+template <class T> Serializer& Serializer::operator<<(stack<T> v )
 { 
 	vector<T> temp;
 	s<<v.size()<<" ";
@@ -388,7 +410,7 @@ template <class T> archive& archive::operator<<(stack<T> v )
 	return *this;
 }
 
-template <class T> archive& archive::operator>>(stack<T> &v )
+template <class T> Serializer& Serializer::operator>>(stack<T> &v )
 { 
 	int size ;
 	s>> size;
@@ -405,7 +427,7 @@ template <class T> archive& archive::operator>>(stack<T> &v )
 
 // Deque Serialization/Deserialize
 
-template <class T> archive& archive::operator<<(deque<T> &d )
+template <class T> Serializer& Serializer::operator<<(deque<T> &d )
 { 
 	s<<d.size()<<" ";
 	for(auto i = d.begin();i != d.end();i++)
@@ -415,7 +437,7 @@ template <class T> archive& archive::operator<<(deque<T> &d )
 	return *this;
 }
 
-template <class T> archive& archive::operator>>(deque<T> &d )
+template <class T> Serializer& Serializer::operator>>(deque<T> &d )
 { 
 	int size ;
 	s>> size;
@@ -432,7 +454,7 @@ template <class T> archive& archive::operator>>(deque<T> &d )
 
 // Queue Serialization/Deserialize
 
-template <class T> archive& archive::operator<<(queue<T> q )
+template <class T> Serializer& Serializer::operator<<(queue<T> q )
 { 
 	s<<q.size()<<" ";
 	int size=q.size();
@@ -444,7 +466,7 @@ template <class T> archive& archive::operator<<(queue<T> q )
 	return *this;
 }
 
-template <class T> archive& archive::operator>>(queue<T> &q)
+template <class T> Serializer& Serializer::operator>>(queue<T> &q)
 { 
 	int size ;
 	s>> size;
@@ -459,7 +481,7 @@ template <class T> archive& archive::operator>>(queue<T> &q)
 }
 
 // List Serialization/Deserialize
-template <class T> archive& archive::operator<<(list<T> &v )
+template <class T> Serializer& Serializer::operator<<(list<T> &v )
 { 
 	s<<v.size()<<" ";
 	for(auto i = v.begin();i != v.end();i++)
@@ -469,7 +491,7 @@ template <class T> archive& archive::operator<<(list<T> &v )
 	return *this;
 }
 
-template <class T> archive& archive::operator>>(list<T> &v )
+template <class T> Serializer& Serializer::operator>>(list<T> &v )
 { 
 	int size ;
 	s>> size;
@@ -485,7 +507,7 @@ template <class T> archive& archive::operator>>(list<T> &v )
 }
 
 // Forward_List Serialization/Deserialize
-template <class T> archive& archive::operator<<(forward_list<T> &v )
+template <class T> Serializer& Serializer::operator<<(forward_list<T> &v )
 { 
 	int size = 0;
 	vector<int> vec;
@@ -499,7 +521,7 @@ template <class T> archive& archive::operator<<(forward_list<T> &v )
 	return *this;
 }
 
-template <class T> archive& archive::operator>>(forward_list<T> &v )
+template <class T> Serializer& Serializer::operator>>(forward_list<T> &v )
 { 
 	int size ;
 	s>> size;
@@ -515,7 +537,7 @@ template <class T> archive& archive::operator>>(forward_list<T> &v )
 }
 
 template <class baseType>
-	baseType& archive::base_object(baseType& b)
+	baseType& Serializer::base_object(baseType& b)
 {
 
 	//(*this)<<b;
@@ -525,7 +547,7 @@ template <class baseType>
 /*
 // Map serialization/Deserialize
 template <class NameType, class ValueType>
-	archive& archive::operator<<(map<NameType, ValueType> &v )
+	Serializer& Serializer::operator<<(map<NameType, ValueType> &v )
 { 
 	s<< v.size() <<" ";
 	for(auto i = v.begin();i != v.end();i++)
@@ -537,7 +559,7 @@ template <class NameType, class ValueType>
 }
 
 template <class NameType, class ValueType>
-	archive& archive::operator>>(map<NameType, ValueType> &v )
+	Serializer& Serializer::operator>>(map<NameType, ValueType> &v )
 { 
 	int size ;
 	s >> size;
@@ -557,7 +579,7 @@ template <class NameType, class ValueType>
 
 // Multi Map serialization/Deserialize
 template <class NameType, class ValueType>
-	archive& archive::operator<<(multimap<NameType, ValueType> &v )
+	Serializer& Serializer::operator<<(multimap<NameType, ValueType> &v )
 { 
 	s<< v.size() <<" ";
 	for(auto i = v.begin();i != v.end();i++)
@@ -569,7 +591,7 @@ template <class NameType, class ValueType>
 }
 
 template <class NameType, class ValueType>
-	archive& archive::operator>>(multimap<NameType, ValueType> &v )
+	Serializer& Serializer::operator>>(multimap<NameType, ValueType> &v )
 { 
 	int size ;
 	s >> size;
@@ -589,39 +611,42 @@ template <class NameType, class ValueType>
 */
 
 template <class T>
-	void writeMap(T &v, stringstream& s)
+	void writeMap(T &v, Serializer& ar)
 {
-	s<< v.size() <<" ";
+	int size = v.size();
+	ar << size;
 	for(auto i = v.begin();i != v.end();i++)
 	{
-		s << (*i).first << " " << (*i).second << " ";
+		ar << (*i).first << (*i).second;
 	}
 }
 
 template <class NameType, class ValueType>
-	archive& archive::operator<<(map<NameType, ValueType> &v )
+	Serializer& Serializer::operator<<(map<NameType, ValueType> &v )
 {
-	writeMap(v, s);
+	//writeMap(v, s);
+	writeMap(v, *this);
 	return *this;
 }
 
 template <class NameType, class ValueType>
-	archive& archive::operator<<(multimap<NameType, ValueType> &v )
+	Serializer& Serializer::operator<<(multimap<NameType, ValueType> &v )
 {
-	writeMap(v, s);
+	//writeMap(v, s);
+	writeMap(v, *this);
 	return *this;
 }
 
 /*
 template <class NameType, class ValueType>
-	archive& archive::operator<<(unordered_map<NameType, ValueType> &v )
+	Serializer& Serializer::operator<<(unordered_map<NameType, ValueType> &v )
 {
 	writeMap(v, s);
 	return *this;
 }
 
 template <class NameType, class ValueType>
-	archive& archive::operator<<(unordered_multimap<NameType, ValueType> &v )
+	Serializer& Serializer::operator<<(unordered_multimap<NameType, ValueType> &v )
 {
 	writeMap(v, s);
 	return *this;
@@ -629,17 +654,17 @@ template <class NameType, class ValueType>
 */
 
 template <class NameType, class ValueType, class T>
-	void readMap(T &v, stringstream& s )
+	void readMap(T &v, Serializer& ar)
 { 
 	int size ;
-	s >> size;
+	ar >> size;
 	//std::cout<<s.str()<<endl;
 	while(size)
 	{
 		NameType name;
 		ValueType val;
-		s >> name;
-		s >> val;
+		ar >> name;
+		ar >> val;
 		v.insert(pair<NameType, ValueType>(name, val));
 		//v[name]=val;
 		--size;
@@ -647,29 +672,31 @@ template <class NameType, class ValueType, class T>
 }
 
 template <class NameType, class ValueType>
-	archive& archive::operator>>(map<NameType, ValueType> &v )
+	Serializer& Serializer::operator>>(map<NameType, ValueType> &v )
 { 
-	readMap<NameType, ValueType, map<NameType, ValueType> >(v, s);
+	//readMap<NameType, ValueType, map<NameType, ValueType> >(v, s);
+	readMap<NameType, ValueType, map<NameType, ValueType> >(v, *this);
 	return *this;
 } 
 
 template <class NameType, class ValueType>
-	archive& archive::operator>>(multimap<NameType, ValueType> &v )
+	Serializer& Serializer::operator>>(multimap<NameType, ValueType> &v )
 { 
-	readMap<NameType, ValueType, multimap<NameType, ValueType> >(v, s);
+	//readMap<NameType, ValueType, multimap<NameType, ValueType> >(v, s);
+	readMap<NameType, ValueType, multimap<NameType, ValueType> >(v, *this);
 	return *this;
 }
 
 /*
 template <class NameType, class ValueType>
-	archive& archive::operator>>(unordered_map<NameType, ValueType> &v )
+	Serializer& Serializer::operator>>(unordered_map<NameType, ValueType> &v )
 { 
 	readMap<NameType, ValueType, unordered_map<NameType, ValueType> >(v, s);
 	return *this;
 }
 
 template <class NameType, class ValueType>
-	archive& archive::operator>>(unordered_multimap<NameType, ValueType> &v )
+	Serializer& Serializer::operator>>(unordered_multimap<NameType, ValueType> &v )
 { 
 	readMap<NameType, ValueType, unordered_multimap<NameType, ValueType> >(v, s);
 	return *this;
