@@ -5,6 +5,57 @@
 #include <fstream>
 using namespace std;
 
+void writeToFile(const stringstream& s)
+{
+	ofstream myfile;
+	myfile.open ("example.txt");
+	myfile << s.str(); 
+	myfile.close();
+}
+
+stringstream* readFromFile()
+{
+	std::ifstream in("example.txt");
+	std::stringstream* buffer = new stringstream();
+	*buffer << in.rdbuf();
+	in.close();
+	return buffer;
+}
+
+void test_priority_queue()
+{
+	cout<< "Testing for priorityQueue"<<endl;
+	Serializer ar;
+	priority_queue<int> q;
+	q.push(3);
+	q.push(2);
+	q.push(3);
+	cout<<"Original priorityQueue :"<<endl;
+	priority_queue<int>  q1 =q;
+	while(!q1.empty())
+	{
+		cout<<q1.top()<< endl;
+		q1.pop();
+	}
+	cout << " Serializing priority_queue..."<<endl;
+	ar.save_object(q);
+	writeToFile(ar.get_stream());
+	
+	stringstream* contents = readFromFile();
+	Deserializer dz(*contents);
+	priority_queue<int> obj2; 
+	dz.load_object(obj2);
+	cout << " Deserializing priority_queue..."<<endl;
+	
+	cout<<"Restored priority_queue :"<<endl;
+	q1 = obj2;
+	while(!q1.empty())
+	{
+		cout<<q1.top()<< endl;
+		q1.pop();
+	}
+}
+
 void test_deque()
 {
 	Serializer a;
@@ -51,22 +102,7 @@ void test_queue()
 	}
 }
 
-void writeToFile(const stringstream& s)
-{
-	ofstream myfile;
-	myfile.open ("example.txt");
-	myfile << s.str(); 
-	myfile.close();
-}
 
-stringstream* readFromFile()
-{
-	std::ifstream in("example.txt");
-	std::stringstream* buffer = new stringstream();
-	*buffer << in.rdbuf();
-	in.close();
-	return buffer;
-}
 
 void testMap()
 {
@@ -137,6 +173,52 @@ void testArrays()
 	cout << endl;
 }
 
+void test_tree()
+{
+ 	tree t;
+ 	t.insert(2);
+ 	t.insert(4);
+ 	t.insert(7);
+ 	t.insert(0);
+ 	t.insert(9);
+ 	t.insert(3);
+ 	t.insert(6);
+	// createloops
+    cout<< "tree with loops"<<endl;
+	treenode * tp = t.get_root();
+	
+	treenode * temp = tp;
+	while(tp->right != NULL)
+	{
+		tp = tp->right;
+
+	}
+	tp->right = temp;
+	
+	while(tp->left != NULL)
+	{
+		tp = tp->left;
+
+	}
+	tp->left = temp;
+	
+	
+	// create loop
+	
+	cout<< "Original tree"<<endl;
+ 	t.print();
+	Serializer ar;
+ 	ar.save_object(t);
+	writeToFile(ar.get_stream());
+	
+	stringstream* contents = readFromFile();
+	Deserializer dz(*contents);
+ 	tree t1;
+	dz.load_object(t1);
+	cout<< "Resurrected tree"<<endl;
+    t1.print();
+}
+
 //test for containment
 /*
 void testContainment()
@@ -174,11 +256,13 @@ void testInheritence()
 */
 int main()
 {
-	testMap();
-	testList();
+	test_tree();
+	//test_priority_queue();
+//	testMap();
+//	testList();
 	//testContainment();
 	//testInheritence();
-	testArrays();
+//	testArrays();
 	//test_queue();
 	//test_deque();
 	//test_forward_list();
