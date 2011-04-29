@@ -282,6 +282,11 @@ public:
 	template <class T>
 	Serializer& operator>>(queue<T> &q);
 
+	template <class T> 
+	Serializer& operator<<(priority_queue<T> q );
+
+    template <class T> 
+	Serializer& operator>>(priority_queue<T>& q );
 	
 	template <class baseType>
 	baseType& base_object(baseType& b);
@@ -420,6 +425,35 @@ template <class T> Serializer& Serializer::operator>>(stack<T> &v )
 		T val;
 		(*this)>> val;
 		v.push(val);
+		--size;
+	}
+	return *this;
+}
+
+// Priority Queue Serialization/Deserialize
+template <class T> Serializer& Serializer::operator<<(priority_queue<T> q )
+{ 
+	s<<q.size()<<" ";
+	while(!q.empty())
+	{
+		T val = q.top();
+		(*this)<<val;
+		q.pop();
+	}
+	//cout<<s.str();
+	return *this;
+}
+
+template <class T> Serializer& Serializer::operator>>(priority_queue<T> &q )
+{ 
+	int size ;
+	s>> size;
+
+	while(size)
+	{
+		T val;
+		(*this)>> val;
+		q.push(val);
 		--size;
 	}
 	return *this;

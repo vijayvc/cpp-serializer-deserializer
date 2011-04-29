@@ -1,4 +1,124 @@
 #include <typeinfo>
+
+struct treenode{
+	 int data;
+     treenode *left;
+     treenode *right;
+   
+	 treenode ()
+	 {
+		 data =0;
+		 left =NULL;
+		 right = NULL;
+	 }
+     treenode (int x, treenode *l, treenode *r)
+	 {
+		 data =x;
+		 left =l;
+		 right = r;
+	 }
+
+	 Serializer& serialize(Serializer &ar)
+	 {
+		 ar<<data<<left<<right;
+	     return ar;
+	 }
+
+	 Serializer & deserialize(Serializer & ar)
+	 {
+		 ar>>data>>left>>right;
+	     return ar;
+	 }
+	static treenode * allocate_memory()
+     {
+
+		treenode *ptree = new treenode();
+		return ptree;
+     }
+};
+
+class tree
+{
+	public:
+	treenode * p_tree;	
+	int count;
+
+
+	friend class Serializer;
+	tree()
+	{
+		count =0;
+        p_tree = NULL;
+	}
+
+	treenode * ins(treenode *ptree,int num)
+	{
+		if (ptree == NULL)
+		{
+			ptree = new treenode(num,NULL,NULL);
+			count++;
+
+		}
+		else
+		{
+
+		  if(count%2==0)
+		    	ptree->left=ins(ptree->left,num);
+		  else
+		    	ptree->right=ins(ptree->right,num);
+		}
+		return(ptree);
+	}
+
+	void insert(int val)
+	{
+		p_tree = ins(p_tree,val);
+	}
+    treenode * get_root()
+	{
+         return p_tree;
+	}
+   
+
+   void serialize(Serializer &ar)
+   {
+	   ar<<p_tree<<count;
+	   //return ar;
+
+   }
+  Serializer& deserialize(Serializer &ar)
+   {
+	   ar>>p_tree>>count;
+	   return ar;
+
+   }
+    void show(treenode *ptree,int k)
+	{   
+		k++;
+		if (k >= count)
+			return;
+
+		if (ptree == NULL)
+		{
+			return;
+		}
+		else
+		{
+			cout<<ptree->data<<endl;
+			show(ptree->left,k);
+			show(ptree->right,k);
+		}
+		return;
+	}
+
+	void print()
+	{   int k = 0;
+		show(p_tree,k);
+	    k =0;
+	}
+};
+
+
 class node
 {
 	friend class Serializer;
