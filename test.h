@@ -1,5 +1,55 @@
 #include <typeinfo>
 
+class listnode{
+ 	int data;
+	listnode *next;
+	public:	
+	void serialize(Serializer &s)
+	{
+		s<<data<<next;
+	}
+	void deserialize(Deserializer &d)
+	{
+		d>>data>>next;
+	}
+	
+	/*
+	static listnode* allocate_memory()
+	{
+		listnode* temp=new listnode();
+		return temp;
+	}
+	*/
+
+	public:
+	listnode(int x):data(x),next(NULL){}
+	listnode(){}
+	void insert(int val)
+	{
+		listnode* newnode=new listnode(val);
+		listnode *root=this;
+		if(root!=NULL)
+		{
+			while(root->next!=NULL)
+			{
+				root=root->next;
+			}
+		}
+		root->next=newnode;
+	}
+	
+	void print()
+	{
+		listnode *root=this;
+		while(root!=NULL)
+		{
+			std::cout<<root->data<<" ";
+			root=root->next;
+		}
+		cout << endl;
+	}
+};
+
 struct treenode{
 	 int data;
      treenode *left;
@@ -11,7 +61,7 @@ struct treenode{
 		 left =NULL;
 		 right = NULL;
 	 }
-     treenode (int x, treenode *l, treenode *r)
+	treenode (int x, treenode *l, treenode *r)
 	 {
 		 data =x;
 		 left =l;
@@ -20,21 +70,22 @@ struct treenode{
 
 	 Serializer& serialize(Serializer &ar)
 	 {
-		 ar<<data<<left<<right;
-	     return ar;
+		ar<<data<<left<<right;
+		return ar;
 	 }
 
-	 Serializer & deserialize(Serializer & ar)
+	 Serializer & deserialize(Deserializer & ar)
 	 {
 		 ar>>data>>left>>right;
 	     return ar;
 	 }
+	 
 	static treenode * allocate_memory()
-     {
+	{
 
 		treenode *ptree = new treenode();
 		return ptree;
-     }
+	}
 };
 
 class tree
@@ -45,6 +96,7 @@ class tree
 
 
 	friend class Serializer;
+	friend class Deserializer;
 	tree()
 	{
 		count =0;
@@ -86,7 +138,7 @@ class tree
 	   //return ar;
 
    }
-  Serializer& deserialize(Serializer &ar)
+  Serializer& deserialize(Deserializer &ar)
    {
 	   ar>>p_tree>>count;
 	   return ar;
@@ -122,11 +174,12 @@ class tree
 class node
 {
 	friend class Serializer;
+	friend class Deserializer;
 	Serializer& serialize(Serializer &ar)
 	{
 		ar<<value<<next;
 	}
-	Serializer& deserialize(Serializer &ar)
+	Serializer& deserialize(Deserializer &ar)
 	{
 		ar>>value>>next;
 	}
@@ -159,30 +212,32 @@ public:
 class base
 {
 	friend class Serializer;
+	friend class Deserializer;
 public:
 	int a;
 	
-	Serializer& serialize(Serializer  &ar)
+	void serialize(Serializer  &ar)
 	{
 		ar<<a;
-		return ar;
 	}
-	Serializer& deserialize(Serializer &ar)
+	void deserialize(Deserializer &ar)
 	{
-		return (ar>>a);
+		ar>>a;
 	}
 };
 
 class derived:public base
 {
 	friend class Serializer;
+	friend class Deserializer;
 	char c;
 	Serializer& serialize(Serializer &ar)
 	{
-		ar<<(ar.base_object<base>(*this))<<c;
+		//ar<<(ar.base_object<base>(*this))<<c;
+		ar<<*(static_cast<base*>(this))<<c;
 	}
 
-	Serializer& deserialize(Serializer &ar)
+	Serializer& deserialize(Deserializer &ar)
 	{
 		ar>>(ar.base_object<base>(*this))>>c;
 	}
@@ -195,13 +250,14 @@ public:
 	void print()
 	{
 		cout << "Contents: ";
-		cout << c << ' ' << a << endl;
+		cout << a << ' ' << c << endl;
 	}
 };
 
 class containment
 {
 	friend class Serializer;
+	friend class Deserializer;
 private:
 	base b;
 	char c;
@@ -210,7 +266,7 @@ private:
 		ar<<b<<c;
 		return ar;
 	}
-	Serializer& deserialize(Serializer &ar)
+	Serializer& deserialize(Deserializer &ar)
 	{
 		ar>>b>>c;
 		return ar;
@@ -231,6 +287,7 @@ public:
 class Results 
 {
 	friend class Serializer;
+	friend class Deserializer;
 public:
 	map<string, int> marks; // name->mark
 	multimap<string, int> mmarks; // name-> {set of marks}
@@ -267,7 +324,7 @@ public:
 		ar<<marks;	
 		ar<<mmarks;	
 	}
-	void deserialize(Serializer &ar)
+	void deserialize(Deserializer &ar)
 	{
 		ar>>marks;
 		ar>>mmarks;

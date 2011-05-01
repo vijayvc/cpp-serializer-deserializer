@@ -25,7 +25,7 @@ stringstream* readFromFile()
 void test_priority_queue()
 {
 	cout<< "Testing for priorityQueue"<<endl;
-	Serializer ar;
+	Serializer srz;
 	priority_queue<int> q;
 	q.push(3);
 	q.push(2);
@@ -37,15 +37,15 @@ void test_priority_queue()
 		cout<<q1.top()<< endl;
 		q1.pop();
 	}
-	cout << " Serializing priority_queue..."<<endl;
-	ar.save_object(q);
-	writeToFile(ar.get_stream());
+	//cout << " Serializing priority_queue..."<<endl;
+	srz.save_object(q);
+	writeToFile(srz.get_stream());
 	
 	stringstream* contents = readFromFile();
 	Deserializer dz(*contents);
 	priority_queue<int> obj2; 
 	dz.load_object(obj2);
-	cout << " Deserializing priority_queue..."<<endl;
+	//cout << " Deserializing priority_queue..."<<endl;
 	
 	cout<<"Restored priority_queue :"<<endl;
 	q1 = obj2;
@@ -58,15 +58,21 @@ void test_priority_queue()
 
 void test_deque()
 {
-	Serializer a;
+	Serializer srz;
 	cout<<"Testing deque"<<endl<<endl;
 	cout<<"Data before serialization"<<endl;
 	deque<int> d={1,2,3,4,5,6};
 	for(auto x=d.begin();x!=d.end();++x)
 		cout<<*x<<endl;
-	a<<d;
+	//a<<d;
+	srz.save_object(d);
+	writeToFile(srz.get_stream());
+	
+	stringstream* contents = readFromFile();
+
+	Deserializer dz(*contents);
 	deque<int> d1;
-	a>>d1;
+	dz.load_object(d1);
 	cout<<"Data after deserialization"<<endl;
 	for(auto x=d1.begin();x!=d1.end();++x)
 		cout<<*x<<endl;
@@ -75,7 +81,7 @@ void test_deque()
 
 void test_queue()
 {
-	Serializer a;
+	Serializer srz;
 	cout<<"Testing queue"<<endl<<endl;
 	cout<<"Data before serialization"<<endl;
 	queue<int> q;
@@ -90,9 +96,16 @@ void test_queue()
 		qp.pop();
 		--c;
 	}
-	a<<q;
+	//srz<<q;
+	srz.save_object(q);
+	writeToFile(srz.get_stream());
+	
+	stringstream* contents = readFromFile();
+
+	Deserializer dz(*contents);
 	queue<int> q1;
-	a>>q1;
+	dz.load_object(q1);
+	//a>>q1;
 	cout<<"Data after deserialization"<<endl;
 	c=6;
 	while(c--)
@@ -124,10 +137,36 @@ void testMap()
 	obj.print();
 }
 
+void testNamedMap()
+{
+	Results obj;
+	obj.inflate();
+	cout << "Original Object: \n";
+	//obj.print();
+
+	Serializer ar;
+	ar.save_object(obj, "Results");
+	writeToFile(ar.get_stream());
+	
+	stringstream* contents = readFromFile();
+	Deserializer dz(*contents);
+	string name = dz.get_name();
+	cout << "Name: " << name << endl;
+	if (name.compare("Results") == 0)
+	{
+		Results obj2; 
+		dz.load_object(obj2);
+
+		cout << "\nRestored Object: \n";
+		obj.print();
+	}
+
+}
+
 // this will test custom object pointer save/load
 void testList()
 {
-	Serializer a;
+	Serializer srz;
 	node *root=new node(10);
 	root->next=new node(45);
 	root->next->next=new node(98763);
@@ -136,8 +175,8 @@ void testList()
 	cout << "\nOriginal List: \n";
 	root->printList();
 
-	a.save_object(root);
-	writeToFile(a.get_stream());
+	srz.save_object(root);
+	writeToFile(srz.get_stream());
 	
 	stringstream* contents = readFromFile();
 	Deserializer dz(*contents);
@@ -151,7 +190,7 @@ void testList()
 // to test array of basic types/objects
 void testArrays()
 {
-	Serializer a;
+	Serializer srz;
 	int arr[3]={5,1,3};
 
 	cout << "Original: ";
@@ -159,8 +198,8 @@ void testArrays()
 		cout << arr[i] << ' ';
 	cout << endl;
 
-	a.save_array(arr,3);
-	writeToFile(a.get_stream());
+	srz.save_array(arr,3);
+	writeToFile(srz.get_stream());
 	
 	stringstream* contents = readFromFile();
 	Deserializer dz(*contents);
@@ -216,23 +255,26 @@ void test_tree()
  	tree t1;
 	dz.load_object(t1);
 	cout<< "Resurrected tree"<<endl;
-    t1.print();
+	t1.print();
 }
 
 //test for containment
-/*
 void testContainment()
 {
-	Serializer a;
+	Serializer srz;
 	containment obj;
 	obj.inflate();
 
 	cout << "Original Object: ";
 	obj.print();
-	a.save_object(obj);
+	srz.save_object(obj);
+	writeToFile(srz.get_stream());
+	
+	stringstream* contents = readFromFile();
+	Deserializer dz(*contents);
 
 	containment res_obj;
-	a.load_object(res_obj);
+	dz.load_object(res_obj);
 	cout << "Restored Object: ";
 	res_obj.print();
 }
@@ -247,69 +289,105 @@ void testInheritence()
 	cout << "Original Object: ";
 	d.print();
 	ar.save_object(d);
-
+	writeToFile(ar.get_stream());
+	stringstream* contents = readFromFile();
+	ar.print();
+	Deserializer dz(*contents);	
 	derived d1;
-	ar.load_object(d1);
+	dz.load_object(d1);
 	cout << "Restored Object: ";
 	d1.print();
 }
-*/
+void test_list(int num)
+{
+	Serializer ar;
+	listnode *root=new listnode(1);
+	for(int i=2;i<num;++i)
+	{
+		root->insert(i);
+	}
+	cout << "Original Object: ";
+	root->print();
+	ar.save_object(root);
+	//ar.print();
+	writeToFile(ar.get_stream());
+	stringstream* contents = readFromFile();
+	//ar.print();
+	Deserializer dz(*contents);	
+	listnode* root1;
+	dz.load_object(root1);
+	cout << "Restored Object: ";
+	root1->print();
+}
 int main()
 {
-	test_tree();
+	//test_tree();
 	//test_priority_queue();
-//	testMap();
-//	testList();
+	//	testMap();
+	//testNamedMap();
+	//	testList();
+
 	//testContainment();
 	//testInheritence();
-//	testArrays();
+	//	testArrays();
 	//test_queue();
 	//test_deque();
 	//test_forward_list();
 	//test_loop();
 	//test_stack();
+	for (int i=0; i < 10; i++)
+		test_list(10);
 	return 0;
 }
 
 /* test for forward_list */
 void test_forward_list()
 {
-	Serializer a;
+	Serializer srz;
 
 	cout <<"Testing for Forward_list\n";
-	cout << "Original FORWARD_LIST\n";
 
 	forward_list<int> vi;
 	vi.push_front(2);
 	vi.push_front(5);
-	a<< vi;
+	srz.save_object(vi);
+
+	writeToFile(srz.get_stream());
+	stringstream* contents = readFromFile();
+	cout << "Original FORWARD_LIST\n";
 	for(auto i = vi.begin();i!= vi.end();i++)
 	{
-		cout<<*i<<endl;
+		std::cout<<*i<<endl;
 	}
+
 	forward_list<int> rl;
+	Deserializer dz(*contents);
+	dz.load_object(rl);
 	cout<<"Restored list";
-	a>>rl;
 	for(auto i = rl.begin();i!= rl.end();i++)
 	{
 		cout<<*i<<endl;
 	}
-
 }
 
 void test_loop()
 {
-	Serializer a;
+	Serializer srz;
 	node *root=new node();
 	root->value=10;
 	root->next=new node();
 	root->next->value=20;
 	root->next->next=root;
 
-	a.save_object(root);
-	a.print();
+	srz.save_object(root);
+	srz.print();
+
+	writeToFile(srz.get_stream());
+	stringstream* contents = readFromFile();
+
+	Deserializer dz(*contents);
 	node* root1;
-	a.load_object(root1);
+	dz.load_object(root1);
 	cout<<root1->value;
 	cout<<root1->next->value;
 	cout<<root1->next->next->value;
@@ -318,7 +396,7 @@ void test_loop()
 void test_stack()
 {
 	cout<< "Testing for Stack"<<endl;
-	Serializer a;
+	Serializer srz;
 	stack<int> s;
 	s.push(1);
 	s.push(2);
@@ -330,24 +408,21 @@ void test_stack()
 		cout<<s1.top()<< endl;
 		s1.pop();
 	}
-	cout << " Serializing stack..."<<endl;
-	a<<s;
+	//cout << " Serializing stack..."<<endl;
+	srz.save_object(s);
+
+	writeToFile(srz.get_stream());
+	stringstream* contents = readFromFile();
+
 	stack<int> s_restore;
-	a>>s_restore;
-	cout << " Deserializing stack..."<<endl;
+	Deserializer dz(*contents);
+	//a>>s_restore;
+	//cout << " Deserializing stack..."<<endl;
 	
 	cout<<"Restored Stack :"<<endl;
-#if 0
 	while(!s_restore.empty())
 	{
 		cout<<s_restore.top()<< endl;
 		s_restore.pop();
-	}i
-#endif
-	s1 = s_restore;
-	while(!s1.empty())
-	{
-		cout<<s1.top()<< endl;
-		s1.pop();
 	}
 }
