@@ -319,6 +319,23 @@ void test_list(int num)
 	cout << "Restored Object: ";
 	root1->print();
 }
+void test_char()
+{
+	//char p[]={'H','e','l','l','o','\0'};
+	const char* p="hello";
+	cout<<"Original Object\n";
+	cout<<p;
+	Serializer s;
+	s.save_object(p);
+	writeToFile(s.get_stream());
+	
+	stringstream* contents = readFromFile();
+	Deserializer d(*contents);
+	char *q;
+	d.load_object(q);
+	cout<<"\nRestored Object\n";
+	cout<<q;
+}
 int main()
 {
 	//test_tree();
@@ -337,6 +354,7 @@ int main()
 	//test_stack();
 	for (int i=0; i < 10; i++)
 		test_list(10);
+	test_char();
 	return 0;
 }
 
