@@ -342,6 +342,7 @@ public:
 	Deserializer& operator>>(short* t)=delete;
 	Deserializer& operator>>(long double* t)=delete;
 
+	/*
 	template <bool, class T>
 	//template <>
 	T* allocateObj()//<true, class T>()
@@ -355,6 +356,7 @@ public:
 	{
 		return new T();
 	}
+	*/
 
 	template<class T>
 	Deserializer& operator>>(T * &t)
