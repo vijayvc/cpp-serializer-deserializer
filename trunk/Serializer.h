@@ -19,15 +19,18 @@ private:
 	map<void*,int> ser_map;
 protected:
 	stringstream s;
+	//Constructor for Serialize. Stringstream is to text mode by default
 	Serializer(const stringstream& input):s(input.str(), stringstream::in)
 	{
 	}
+
 public:
 	void print()
 	{
 		cout<<"The stream is "<<s.str()<<endl;
 	}
 	
+	//Save Array 
 	template<class T>
 	Serializer& save_array(T* ptr, int n)
 	{
@@ -37,11 +40,8 @@ public:
 			(*this)<<*ptr;
 		return *this;
 	}
-
-	// Serialize/Deserialize pointers
-	Serializer& operator<<(int* t)=delete;
 	
-	
+	//Special overload to support Character pointers
 	Serializer& operator<<(const char*& t)
 	{
 		int length=0;
@@ -53,7 +53,10 @@ public:
 		while(*t)
 			s<<*t++<<" ";
 	}
-	
+
+	// Serialize/Deserialize pointers. Other primitve types are not allowed to instantiate.
+	// Using C++0x delete feature to achieve this.
+	Serializer& operator<<(int* t)=delete;
 	
 	Serializer& operator<<(float* t)=delete;
 	
@@ -66,6 +69,7 @@ public:
 
 	Serializer& operator<<(long double* t)=delete;
 
+	//serializer for pointers to user-defined types 
 	template<class T>
 	Serializer& operator<<(T * &t)
 	{
@@ -74,6 +78,7 @@ public:
 			s<<0<<" ";
 			return *this;
 		}
+		//Assigning each pointer to unique id using maps to eliminate cycles/joins
 		if(ser_map.find(t)!=ser_map.end())
 		{
 			s<<ser_map[t]<<" ";
@@ -87,6 +92,9 @@ public:
 		}
 		return *this;
 	}
+
+	//Serialization of all primitive types
+
 
 	Serializer& operator<<(int& t)
 	{
@@ -137,7 +145,7 @@ public:
 		return *this;
 	}
 
-
+	//Serialization of std::String. First we write length followed by the characters in the string.
 	Serializer& operator<<(const string &t)
 	{
 		int len=t.length();
@@ -148,6 +156,7 @@ public:
 		return *this;
 	}
 
+	//Serialization of non-const std::string
 	Serializer& operator<<(string &t)
 	{
 		int len=t.length();
@@ -158,7 +167,7 @@ public:
 		return *this;
 	}
   
-
+	//Serialization of User-defined types
 	template <class T>
 	Serializer& operator<< (T&t)
 	{
@@ -167,23 +176,6 @@ public:
 	}
 
 
-	// General Serialization/Deserialization
-	/*
-	template<class T>
-	Serializer& operator<<(T& t)
-	{
-		s<<t<<" ";
-		return *this;
-	}
-
-	template<class T>
-	Serializer& operator>>(T &t)
-	{
-		s>>t;
-		return *this;
-	}
-	*/
-	// Vector Serialization/Deserialize
 	template <class T>
 	Serializer& operator<<(vector<T> &v );
 	
@@ -199,31 +191,28 @@ public:
 	template <class baseType>
 	baseType& base_object(baseType& b);
 
-	// List Serialization/Deserialize
+	// List Serialization
 	template <class T>
 	Serializer& operator<<(list<T> &v );
 
 	template <class T> 
 	Serializer& operator<<(forward_list<T> &v );
 	
-	// Map serialization/Deserialize
+	// Map serialization
 	template <class NameType, class ValueType>
 	Serializer& operator<<(map<NameType, ValueType> &v );
 
-	/*
-	template <class NameType, class ValueType>
-	Serializer& operator<<(map<const char*, ValueType> &v );
-	*/
-
-	// Multi Map serialization/Deserialize
+	// Multi Map serialization
 	template <class NameType, class ValueType>
 	Serializer& operator<<(multimap<NameType, ValueType> &v );
 
 	template <class T> Serializer& operator<<(stack<T> v );
 
-		// Named member functions
 	Serializer(): s(stringstream::out){}
 
+	/*Save_object routine which is directly accessible to the user. 
+	He can optionally pass the name parameter for self-identifying streams
+	Generic routine instantiated for all user-defined/primitive types*/
 	template<class T>
 	void save_object(T &t, const string name="dummy")
 	{
@@ -232,14 +221,15 @@ public:
 		(*this)<<t;
 	}
 
-
+	//Saving Pointers.
 	template<class T>
 	void save_object(T*& t, const string name="dummy")
 	{
 		s<<name<<' ';
 		(*this)<<t;
 	}
-
+	
+	//routine for returning stream after serializing a object.
 	const stringstream& get_stream()
 	{
 		return s;
@@ -278,6 +268,8 @@ class Deserializer:public Serializer
 	template <class T, int size>
 	class Select{};
 
+	//Partial template class specialization with value 1.
+	//This will be instantiated only when the object has allocate_memory defined.
 	template<class T> 
 	class Select<T,1> 
 	{
@@ -286,14 +278,17 @@ class Deserializer:public Serializer
 		return (T::allocate_memory()); 
 		}
 	};
-
+	
+	//Partial template class specialization with value 0.
+	//This will be instantiated only when the object has allocate_memory not defined.
 	template<class T> 
 	class Select<T,0> {
 		public:
 		static T* f() { 
 			return (new T()); }
 	};
-
+	
+	//alloc function for calling correct template class specalization. 
 	template <bool b, class T>
 	T* alloc()
 	{
@@ -305,9 +300,12 @@ class Deserializer:public Serializer
 
 public:
 	
+	//Deserializer constructor which will be instantiated with the seriliazed stream
 	Deserializer(const stringstream& input):Serializer(input),retName(false)
 	{
 	}
+	
+	//Load object which checks initially whether the user called get_name
 	template<class T>
 	void load_object(T &t)
 	{
@@ -319,6 +317,7 @@ public:
 		(*this)>>t;
 	}
 	
+	//load object routine for pointers
 	template<class T>
 	void load_object(T*& t)
 	{
@@ -330,6 +329,7 @@ public:
 		(*this)>>t;
 	}
 
+	//get_array_size which will be called before restoring arrays.
 	int get_array_size()
 	{
 		int pos=s.tellg();
@@ -339,6 +339,7 @@ public:
 		return len;
 	}
 
+	//for deseriazlizing pointers
 	template<class T>
 	void load_array(T* ptr)
 	{
@@ -348,12 +349,14 @@ public:
 			(*this)>>*ptr;
 	}
 
+	//Save routine for allowed to be instantiated with the deserializer object
 	template<class T>
 	void save_object(T& t) = delete;
 
 	template<class T>
 	void save_object(T *t) = delete;
 
+	//returns the name of the object
 	const string get_name()
 	{
 		retName = true;
@@ -362,20 +365,22 @@ public:
 		return str;
 	}
 
+	//Deserializing for user-defined objects.
 	template <class T>
 	Deserializer& operator>> (T&t)
 	{
 		t.deserialize(*this);
 		return *this;
 	}
-
+	
+	//Deserialization of all user-defined pointer types are disallowed
 	Deserializer& operator>>(int* t)=delete;
-	//Deserializer& operator>>(char* t)=delete;
 	Deserializer& operator>>(float* t)=delete;
 	Deserializer& operator>>(double* t)=delete;
 	Deserializer& operator>>(short* t)=delete;
 	Deserializer& operator>>(long double* t)=delete;
 
+	//Overload for deserializing character pointers
 	Deserializer& operator>>(char *& t)
 	{
 		char *p;
@@ -390,6 +395,7 @@ public:
 		*p='\0';
 		t=temp;
 	}
+	
 	/*
 	template <bool, class T>
 	//template <>
@@ -406,6 +412,7 @@ public:
 	}
 	*/
 
+	//pointers deserialization
 	template<class T>
 	Deserializer& operator>>(T * &t)
 	{
@@ -428,6 +435,8 @@ public:
 		}
 		return (*this);
 	}
+
+	//Deserialization of all user-defined types
 	inline Deserializer& operator>>(int &t)
 	{
 		s>>t;
@@ -468,6 +477,9 @@ public:
 		s>>t;
 		return *this;
 	}
+	
+	//std::string deserialization
+
 	Deserializer& operator>>(string &t)
 	{
 		int len;
@@ -507,7 +519,7 @@ public:
 
 };
 
-// Vector Serialization/Deserialize
+// Vector Serialization
 template <class T> Serializer& Serializer::operator<<(vector<T> &v )
 { 
 	s<<v.size()<<" ";
@@ -518,6 +530,7 @@ template <class T> Serializer& Serializer::operator<<(vector<T> &v )
 	return *this;
 }
 
+// Vector deserialization
 template <class T> Deserializer& Deserializer::operator>>(vector<T> &v )
 { 
 	int size ;
@@ -790,6 +803,7 @@ template <class T>
 	}
 }
 
+//Map serialization
 template <class NameType, class ValueType>
 	Serializer& Serializer::operator<<(map<NameType, ValueType> &v )
 {
