@@ -13,13 +13,11 @@ class listnode{
 		d>>data>>next;
 	}
 	
-	/*
 	static listnode* allocate_memory()
 	{
 		listnode* temp=new listnode();
 		return temp;
 	}
-	*/
 
 	public:
 	listnode(int x):data(x),next(NULL){}
