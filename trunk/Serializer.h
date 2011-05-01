@@ -42,7 +42,17 @@ public:
 	Serializer& operator<<(int* t)=delete;
 	
 	
-	Serializer& operator<<(const char* t)=delete;
+	Serializer& operator<<(const char*& t)
+	{
+		int length=0;
+		const char *temp=t;
+		while(*t++)
+			length++;
+		s<<length<<" ";
+		t=temp;
+		while(*t)
+			s<<*t++<<" ";
+	}
 	
 	
 	Serializer& operator<<(float* t)=delete;
@@ -99,7 +109,6 @@ public:
 		s<<t<<" ";
 		return *this;
 	}
-
 	
 	Serializer& operator<<(bool &t)
 	{
@@ -240,42 +249,68 @@ public:
 
 class Deserializer:public Serializer
 {
-	
+
 	template <class Type>
 	class TypeHasAllocateMem
 	{
-		// This type won't compile if the second template parameter isn't of type T,
-		// so I can put a function pointer type in the first parameter and the function
-		// itself in the second thus checking that the function has a specific signature.
-		template <typename T, T> struct TypeCheck;
+	// This type won't compile if the second template parameter isn't of type T,
+	// so I can put a function pointer type in the first parameter and the function
+	// itself in the second thus checking that the function has a specific signature.
+	template <typename T, T> struct TypeCheck;
 
-		typedef char Yes;
-		typedef long No;
+	typedef char Yes;
+	typedef long No;
 
-		// A helper struct to hold the declaration of the function pointer.
-		// Change it if the function signature changes.
-		template <typename T> struct AllocateMem
-		{
-			typedef T*(*fptr)();
-		};
+	// A helper struct to hold the declaration of the function pointer.
+	// Change it if the function signature changes.
+	template <typename T> struct AllocateMem
+	{
+		typedef T*(*fptr)();
+	};
 
-		template <typename T> static Yes HasAllocateMem(TypeCheck< typename AllocateMem<T>::fptr, T::allocate_memory >*);
-		template <typename T> static No  HasAllocateMem(...);
+	template <typename T> static Yes HasAllocateMem(TypeCheck< typename AllocateMem<T>::fptr, T::allocate_memory >*);
+	template <typename T> static No  HasAllocateMem(...);
 
-		public:
+	public:
 		static bool const value = (sizeof(HasAllocateMem<Type>(0)) == sizeof(Yes));
 	};
 
+	template <class T, int size>
+	class Select{};
+
+	template<class T> 
+	class Select<T,1> 
+	{
+		public:
+		static T* f() { 
+		return (T::allocate_memory()); 
+		}
+	};
+
+	template<class T> 
+	class Select<T,0> {
+		public:
+		static T* f() { 
+			return (new T()); }
+	};
+
+	template <bool b, class T>
+	T* alloc()
+	{
+		return (Select<T,b>::f()); 
+	}
+	
 	bool retName;
 	map<int,void*> deser_map; 
+
 public:
+	
 	Deserializer(const stringstream& input):Serializer(input),retName(false)
 	{
 	}
 	template<class T>
 	void load_object(T &t)
 	{
-		//t.deserialize(*this);
 		if (! retName)
 		{
 			string str;
@@ -311,7 +346,6 @@ public:
 		s>>len;
 		for(int i=0;i<len;++i,++ptr)
 			(*this)>>*ptr;
-		//return *this;
 	}
 
 	template<class T>
@@ -336,12 +370,26 @@ public:
 	}
 
 	Deserializer& operator>>(int* t)=delete;
-	Deserializer& operator>>(char* t)=delete;
+	//Deserializer& operator>>(char* t)=delete;
 	Deserializer& operator>>(float* t)=delete;
 	Deserializer& operator>>(double* t)=delete;
 	Deserializer& operator>>(short* t)=delete;
 	Deserializer& operator>>(long double* t)=delete;
 
+	Deserializer& operator>>(char *& t)
+	{
+		char *p;
+		int n;
+		s>>n;
+		p=new char[n+1];
+		char *temp=p;
+		for(int i=1;i<=n;++i)
+		{
+			s>>(*p++);
+		}
+		*p='\0';
+		t=temp;
+	}
 	/*
 	template <bool, class T>
 	//template <>
@@ -373,7 +421,7 @@ public:
 		}
 		else
 		{
-			T *p=T::allocate_memory();
+			T *p=alloc<TypeHasAllocateMem<T>::value, T>();
 			deser_map[n]=p;
 			t=p;
 			(*this)>>*p;
