@@ -1,0 +1,1 @@
+This is a class project for TAMU Spring 2011 course, Design Using C++ under Professor Bjarne Stroustrup
